@@ -17,9 +17,6 @@ jobs:
   # =============================================
   deploy-backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
 
     steps:
       - name: Checkout code
@@ -32,31 +29,32 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore
+        working-directory: server
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
+        working-directory: server
 
       - name: Run Tests
         run: dotnet test --no-build --configuration Release --verbosity normal
+        working-directory: server
 
       - name: Publish
-        run: dotnet publish src/WeeklyPlanTracker.API/WeeklyPlanTracker.API.csproj --configuration Release --output ./publish
+        run: dotnet publish src/WeeklyPlanTracker.API/WeeklyPlanTracker.API.csproj --configuration Release --output ${{ github.workspace }}/backend-publish
+        working-directory: server
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_BACKEND_APP_NAME }}
           publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
-          package: server/publish
+          package: ${{ github.workspace }}/backend-publish
 
   # =============================================
   # Job 2: Build and Deploy Frontend
   # =============================================
   deploy-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
 
     steps:
       - name: Checkout code
@@ -71,16 +69,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: client
 
       - name: Run Tests
         run: npx ng test --no-watch --coverage
+        working-directory: client
 
       - name: Build for production
         run: npx ng build --configuration production
+        working-directory: client
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_FRONTEND_APP_NAME }}
           publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
-          package: client/dist/client/browser
+          package: ${{ github.workspace }}/client/dist/client/browser
