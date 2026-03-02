@@ -14,11 +14,10 @@ namespace WeeklyPlanTracker.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Register EF Core DbContext with SQL Server
+            // Use InMemory database for session-based storage
+            // Data persists while the server is running, resets on restart
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                options.UseInMemoryDatabase("WeeklyPlanTrackerDb"));
 
             // Register Unit of Work and repositories
             services.AddScoped<IUnitOfWork, UnitOfWork>();
