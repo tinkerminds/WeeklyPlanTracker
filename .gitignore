@@ -1,0 +1,99 @@
+# =========================
+# .NET / C#
+# =========================
+## Build results
+server/**/bin/
+server/**/obj/
+server/**/out/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+.nuget/
+
+## Visual Studio
+.vs/
+*.sln.iml
+
+## Rider
+.idea/
+
+## Test Results
+server/**/TestResults/
+server/**/coverage/
+
+# =========================
+# Angular / Node.js
+# =========================
+client/node_modules/
+client/dist/
+client/.angular/
+client/.sass-cache/
+client/connect.lock
+client/coverage/
+client/libpeerconnection.log
+client/testem.log
+client/typings/
+
+## npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# =========================
+# IDE
+# =========================
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+
+# =========================
+# AI Reference / Documentation (not tracked)
+# =========================
+PRD.md
+analysis.md
+
+# =========================
+# Environment
+# =========================
+*.env
+*.env.local
+*.env.production
+appsettings.Development.json

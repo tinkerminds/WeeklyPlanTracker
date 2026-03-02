@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WeeklyPlanTracker.API/WeeklyPlanTracker.API.csproj" />
+    <Project Path="src/WeeklyPlanTracker.Core/WeeklyPlanTracker.Core.csproj" />
+    <Project Path="src/WeeklyPlanTracker.Infrastructure/WeeklyPlanTracker.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WeeklyPlanTracker.IntegrationTests/WeeklyPlanTracker.IntegrationTests.csproj" />
+    <Project Path="tests/WeeklyPlanTracker.UnitTests/WeeklyPlanTracker.UnitTests.csproj" />
+  </Folder>
+</Solution>
