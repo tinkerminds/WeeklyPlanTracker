@@ -1,6 +1,6 @@
 # Weekly Plan Tracker
 
-A team planning tool for managing weekly work cycles. Built with **ASP.NET Core (.NET 8)** and **Angular 19**.
+A team planning tool for managing weekly work cycles. Built with **ASP.NET Core (.NET 8)** and **Angular 21**.
 
 ## Project Structure
 
