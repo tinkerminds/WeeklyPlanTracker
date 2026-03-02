@@ -1,8 +1,8 @@
-# 📋 Weekly Plan Tracker
+# Weekly Plan Tracker
 
-A team planning tool for managing weekly work cycles. Built with **ASP.NET Core (.NET 10)** and **Angular 19**.
+A team planning tool for managing weekly work cycles. Built with **ASP.NET Core (.NET 8)** and **Angular 19**.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 WeeklyPlanTracker/
@@ -23,10 +23,10 @@ WeeklyPlanTracker/
 └── README.md
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org/)
 - [Angular CLI](https://angular.dev/)
 
@@ -56,7 +56,7 @@ cd client
 ng test
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 - **Backend**: ASP.NET Core Web API with Clean Architecture (Core → Infrastructure → API)
 - **Frontend**: Angular 19 with standalone components
@@ -64,5 +64,5 @@ ng test
 - **Deployment**: Azure App Service + Azure SQL
 - **CI/CD**: GitHub Actions
 
-## 📄 Documentation
+## Documentation
 - [Product Requirements Document (PRD)](./PRD.md)

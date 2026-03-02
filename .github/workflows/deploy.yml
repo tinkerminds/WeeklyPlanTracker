@@ -8,7 +8,7 @@ on:
 env:
   AZURE_BACKEND_APP_NAME: 'weekly-plan-tracker-api'    # Replace with your Azure App Service name
   AZURE_FRONTEND_APP_NAME: 'weekly-plan-tracker-app'   # Replace with your Azure Static Web App or App Service name
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: '8.0.x'
   NODE_VERSION: '20'
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
         run: npm ci
 
       - name: Run Tests
-        run: npx ng test --no-watch --browsers=ChromeHeadless
+        run: npx ng test --no-watch --browsers=ChromeHeadless --coverage
 
       - name: Build for production
         run: npx ng build --configuration production

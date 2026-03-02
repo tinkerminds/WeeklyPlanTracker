@@ -37,7 +37,7 @@ jobs:
         run: npx ng lint --no-interactive || echo "Linting not configured yet"
 
       - name: Run Tests
-        run: npx ng test --no-watch --browsers=ChromeHeadless --code-coverage
+        run: npx ng test --no-watch --browsers=ChromeHeadless --coverage
 
       - name: Build
         run: npx ng build --configuration production
