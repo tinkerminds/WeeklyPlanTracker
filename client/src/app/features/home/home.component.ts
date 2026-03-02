@@ -1,0 +1,212 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
+import { NavigationService } from '../../core/services/navigation.service';
+import { TeamMember } from '../../core/models/team-member.model';
+import { MemberRole } from '../../core/enums/enums';
+
+interface MenuCard {
+  icon: string;
+  title: string;
+  subtitle: string;
+  screen: string;
+  danger?: boolean;
+}
+
+@Component({
+  selector: 'app-home',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="home-container">
+      <!-- Greeting -->
+      <div class="greeting-section">
+        <h1>{{ getGreeting() }}, {{ user?.name }}!</h1>
+        <span class="role-tag" [class.role-lead]="isLead" [class.role-member]="!isLead">
+          {{ isLead ? '👑 Team Lead' : '👤 Team Member' }}
+        </span>
+      </div>
+
+      <!-- Status Message -->
+      <div class="status-bar">
+        <span class="status-dot"></span>
+        <span>{{ statusMessage }}</span>
+      </div>
+
+      <!-- Menu Cards -->
+      <div class="card-grid">
+        @for (card of menuCards; track card.title) {
+          <button class="menu-card" [class.card-danger]="card.danger" (click)="nav.navigateTo($any(card.screen))">
+            <span class="card-icon">{{ card.icon }}</span>
+            <div class="card-text">
+              <span class="card-title">{{ card.title }}</span>
+              <span class="card-subtitle">{{ card.subtitle }}</span>
+            </div>
+            <span class="card-arrow">›</span>
+          </button>
+        }
+      </div>
+    </div>
+  `,
+  styles: [`
+    .home-container {
+      max-width: 640px;
+      margin: 40px auto;
+      padding: 0 20px;
+      font-family: 'Inter', sans-serif;
+    }
+    .greeting-section {
+      margin-bottom: 24px;
+    }
+    .greeting-section h1 {
+      font-size: 24px;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+    .role-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .role-lead {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+    .role-member {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      color: #93c5fd;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3b82f6;
+      flex-shrink: 0;
+    }
+    .card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .menu-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      padding: 18px 20px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      text-align: left;
+      color: #e2e8f0;
+    }
+    .menu-card:hover {
+      border-color: #475569;
+      background: #253449;
+      transform: translateX(4px);
+    }
+    .card-danger {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .card-danger:hover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .card-danger .card-title {
+      color: #ef4444;
+    }
+    .card-icon {
+      font-size: 24px;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .card-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .card-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .card-arrow {
+      font-size: 22px;
+      color: #475569;
+      flex-shrink: 0;
+    }
+  `]
+})
+export class HomeComponent implements OnInit, OnDestroy {
+  user: TeamMember | null = null;
+  isLead = false;
+  menuCards: MenuCard[] = [];
+  statusMessage = '';
+  private sub!: Subscription;
+
+  constructor(
+    private authService: AuthService,
+    public nav: NavigationService
+  ) { }
+
+  ngOnInit(): void {
+    this.sub = this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+      this.isLead = user?.role === MemberRole.Lead;
+      this.buildMenu();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+
+  getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  private buildMenu(): void {
+    if (this.isLead) {
+      this.statusMessage = "No planning weeks yet. Click 'Start a New Week' to begin!";
+      this.menuCards = [
+        { icon: '🚀', title: 'Start a New Week', subtitle: 'Set up a new planning cycle.', screen: 'start-week' },
+        { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+        { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
+        { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+      ];
+    } else {
+      this.statusMessage = "There's no active plan for you right now. Check back on Tuesday or ask your Team Lead.";
+      this.menuCards = [
+        { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+        { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+      ];
+    }
+  }
+}

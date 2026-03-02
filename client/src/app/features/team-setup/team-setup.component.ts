@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { TeamMember } from '../../core/models/team-member.model';
 import { MemberRole } from '../../core/enums/enums';
 import { TeamMemberService } from '../../core/services/team-member.service';
 import { ToastService } from '../../core/services/toast.service';
+import { NavigationService } from '../../core/services/navigation.service';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
 @Component({
@@ -55,13 +54,16 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
               } @else {
                 <span class="lead-check">Lead ✓</span>
               }
+              <button class="btn btn-remove" (click)="removeMember(member)" [id]="'remove-' + member.id" title="Remove member">
+                ✕
+              </button>
             </div>
           </div>
         }
       </div>
 
       @if (members.length > 0) {
-        <button class="btn btn-done" (click)="goToHome()" id="done-btn">
+        <button class="btn btn-done" (click)="saveAndContinue()" id="done-btn">
           Done — Go to Home Screen
         </button>
       }
@@ -139,6 +141,24 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     .btn-outline:hover {
       background: rgba(59, 130, 246, 0.1);
     }
+    .btn-remove {
+      background: transparent;
+      color: #64748b;
+      border: 1px solid #475569;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-remove:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
     .btn-done {
       display: block;
       width: 100%;
@@ -204,44 +224,67 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     }
   `]
 })
-export class TeamSetupComponent implements OnInit, OnDestroy {
+export class TeamSetupComponent {
+  /** Temporary in-memory list — NOT saved to localStorage until "Done" is clicked.
+   *  Refreshing the page clears everything. */
   members: TeamMember[] = [];
   newMemberName = '';
   MemberRole = MemberRole;
-  private sub!: Subscription;
 
   constructor(
     private teamMemberService: TeamMemberService,
     private toastService: ToastService,
-    private router: Router
+    private nav: NavigationService
   ) { }
-
-  ngOnInit(): void {
-    // Subscribe to reactive member list — updates instantly
-    this.sub = this.teamMemberService.members$.subscribe(
-      members => this.members = members
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
-  }
 
   addMember(): void {
     const name = this.newMemberName.trim();
     if (!name) return;
 
-    this.teamMemberService.create(name);
+    const isFirst = this.members.length === 0;
+    const newMember: TeamMember = {
+      id: crypto.randomUUID(),
+      name,
+      role: isFirst ? MemberRole.Lead : MemberRole.Member,
+      isActive: true,
+      createdAt: new Date().toISOString()
+    };
+
+    this.members = [...this.members, newMember];
     this.newMemberName = '';
-    this.toastService.success('Changes saved!');
+    this.toastService.success('Member added!');
   }
 
   makeLead(member: TeamMember): void {
-    this.teamMemberService.makeLead(member.id);
+    this.members = this.members.map(m => ({
+      ...m,
+      role: m.id === member.id ? MemberRole.Lead : MemberRole.Member
+    }));
     this.toastService.success(`${member.name} is now the Team Lead!`);
   }
 
-  goToHome(): void {
-    this.router.navigate(['/login']);
+  removeMember(member: TeamMember): void {
+    if (this.members.length <= 1) {
+      this.toastService.warning('Cannot remove the last team member.');
+      return;
+    }
+
+    const wasLead = member.role === MemberRole.Lead;
+    this.members = this.members.filter(m => m.id !== member.id);
+
+    // If we removed the Lead, make the first remaining member the Lead
+    if (wasLead && this.members.length > 0) {
+      this.members[0] = { ...this.members[0], role: MemberRole.Lead };
+      this.toastService.success(`${member.name} removed. ${this.members[0].name} is now the Lead.`);
+    } else {
+      this.toastService.success(`${member.name} removed.`);
+    }
+  }
+
+  /** Save to localStorage and navigate to login. */
+  saveAndContinue(): void {
+    this.teamMemberService.setAll(this.members);
+    this.toastService.success('Team saved!');
+    this.nav.navigateTo('login');
   }
 }
