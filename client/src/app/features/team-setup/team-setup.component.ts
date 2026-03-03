@@ -6,6 +6,7 @@ import { MemberRole } from '../../core/enums/enums';
 import { TeamMemberService } from '../../core/services/team-member.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { AuthService } from '../../core/services/auth.service';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
 @Component({
@@ -118,7 +119,8 @@ export class TeamSetupComponent {
   constructor(
     private teamMemberService: TeamMemberService,
     private toastService: ToastService,
-    private nav: NavigationService
+    private nav: NavigationService,
+    private authService: AuthService
   ) { }
 
   addMember(): void {
@@ -158,13 +160,21 @@ export class TeamSetupComponent {
     }
   }
 
-  /** Save all members to the .NET API and navigate to login. */
+  /** Save all members to the .NET API, auto-login as Lead, and go to home. */
   async saveAndContinue(): Promise<void> {
     this.isSaving = true;
     try {
       await this.teamMemberService.bulkCreate(this.members);
       this.toastService.success('Team saved!');
-      this.nav.navigateTo('login');
+
+      // Fetch saved members from API to get correct IDs, then auto-login as Lead
+      const { firstValueFrom } = await import('rxjs');
+      const savedMembers = await firstValueFrom(this.teamMemberService.getAll());
+      const lead = savedMembers.find(m => m.role === 'Lead') || savedMembers[0];
+      if (lead) {
+        this.authService.login(lead);
+      }
+      this.nav.navigateTo('home');
     } catch (err) {
       this.toastService.error('Failed to save team. Please try again.');
     } finally {
