@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
  * All screens in the app. No URL routing — just state-driven screen switching.
  */
 export type Screen =
+    | 'loading'
     | 'setup'
     | 'login'
     | 'home'
@@ -22,7 +23,7 @@ export type Screen =
     providedIn: 'root'
 })
 export class NavigationService {
-    private screenSubject = new BehaviorSubject<Screen>('setup');
+    private screenSubject = new BehaviorSubject<Screen>('loading');
     private historyStack: Screen[] = [];
 
     /** Observable of the current screen. */

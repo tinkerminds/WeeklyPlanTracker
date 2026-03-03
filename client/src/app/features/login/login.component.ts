@@ -9,10 +9,10 @@ import { NavigationService } from '../../core/services/navigation.service';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
 @Component({
-    selector: 'app-login',
-    standalone: true,
-    imports: [CommonModule, RoleBadgeComponent],
-    template: `
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, RoleBadgeComponent],
+  template: `
     <div class="login-container">
       <div class="login-header">
         <h1>👤 Who are you?</h1>
@@ -32,16 +32,14 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       @if (members.length === 0) {
         <div class="empty-state">
           <p>No team members found.</p>
-          <button class="btn btn-primary" (click)="goToSetup()">Set Up Team</button>
+          <button class="btn btn-primary" (click)="nav.navigateTo('setup')">Set Up Team</button>
         </div>
       }
 
-      <div class="login-footer">
-        <button class="btn btn-link" (click)="goToSetup()">⚙️ Manage Team</button>
-      </div>
+
     </div>
   `,
-    styles: [`
+  styles: [`
     .login-container {
       max-width: 500px;
       margin: 60px auto;
@@ -148,35 +146,33 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
   `]
 })
 export class LoginComponent implements OnInit, OnDestroy {
-    members: TeamMember[] = [];
-    private sub!: Subscription;
+  members: TeamMember[] = [];
+  private sub!: Subscription;
 
-    constructor(
-        private teamMemberService: TeamMemberService,
-        private authService: AuthService,
-        private nav: NavigationService
-    ) { }
+  constructor(
+    private teamMemberService: TeamMemberService,
+    private authService: AuthService,
+    public nav: NavigationService
+  ) { }
 
-    ngOnInit(): void {
-        this.sub = this.teamMemberService.members$.subscribe(
-            members => this.members = members
-        );
-    }
+  ngOnInit(): void {
+    this.sub = this.teamMemberService.members$.subscribe(
+      members => this.members = members
+    );
+  }
 
-    ngOnDestroy(): void {
-        this.sub?.unsubscribe();
-    }
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 
-    selectMember(member: TeamMember): void {
-        this.authService.login(member);
-        this.nav.navigateTo('home');
-    }
+  selectMember(member: TeamMember): void {
+    this.authService.login(member);
+    this.nav.navigateTo('home');
+  }
 
-    getInitials(name: string): string {
-        return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    }
+  getInitials(name: string): string {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
 
-    goToSetup(): void {
-        this.nav.navigateTo('setup');
-    }
+
 }

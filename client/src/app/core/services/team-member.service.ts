@@ -1,34 +1,37 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap, firstValueFrom } from 'rxjs';
 import { TeamMember } from '../models/team-member.model';
 import { MemberRole } from '../enums/enums';
-import { StorageService } from './storage.service';
+import { environment } from '../../../environments/environment';
 
 /**
- * Service managing team members using browser localStorage.
- * No backend API calls — all data stays in the browser.
+ * Service managing team members via the .NET REST API.
+ * Uses BehaviorSubject for reactive updates after each API call.
  */
 @Injectable({
     providedIn: 'root'
 })
 export class TeamMemberService {
-    private readonly STORAGE_KEY = 'team_members';
+    private readonly apiUrl = `${environment.apiUrl}/team-members`;
     private membersSubject = new BehaviorSubject<TeamMember[]>([]);
 
     /** Observable stream of current team members. */
     members$ = this.membersSubject.asObservable();
 
-    constructor(private storage: StorageService) {
-        // Load from localStorage on init
-        this.loadFromStorage();
+    constructor(private http: HttpClient) {
+        this.refresh();
     }
 
-    /** Get all active team members as an observable. */
-    getAll(): Observable<TeamMember[]> {
-        return this.members$;
+    /** Refresh the local cache from the API. */
+    refresh(): void {
+        this.http.get<TeamMember[]>(this.apiUrl).subscribe({
+            next: members => this.membersSubject.next(members),
+            error: () => { } // Silent fail on initial load (API might not be ready)
+        });
     }
 
-    /** Get current members array (synchronous). */
+    /** Get current members array (synchronous from cache). */
     getMembers(): TeamMember[] {
         return this.membersSubject.getValue();
     }
@@ -38,87 +41,57 @@ export class TeamMemberService {
         return this.getMembers().length > 0;
     }
 
-    /** Add a new team member. First person added becomes Lead automatically. */
-    create(name: string): TeamMember {
-        const members = this.getMembers();
-        const isFirstMember = members.length === 0;
-
-        const newMember: TeamMember = {
-            id: this.generateId(),
-            name: name.trim(),
-            role: isFirstMember ? MemberRole.Lead : MemberRole.Member,
-            isActive: true,
-            createdAt: new Date().toISOString()
-        };
-
-        const updated = [...members, newMember];
-        this.saveAndEmit(updated);
-        return newMember;
+    /** Add a new team member via API. First person becomes Lead automatically. */
+    create(name: string): Observable<TeamMember> {
+        return this.http.post<TeamMember>(this.apiUrl, { name }).pipe(
+            tap(() => this.refresh())
+        );
     }
 
     /** Update a team member's name. */
-    update(id: string, name: string): TeamMember | null {
-        const members = this.getMembers();
-        const index = members.findIndex(m => m.id === id);
-        if (index === -1) return null;
-
-        members[index] = { ...members[index], name: name.trim() };
-        this.saveAndEmit([...members]);
-        return members[index];
+    update(id: string, name: string): Observable<TeamMember> {
+        return this.http.put<TeamMember>(`${this.apiUrl}/${id}`, { name }).pipe(
+            tap(() => this.refresh())
+        );
     }
 
-    /** Make a member the Team Lead (swaps from current Lead). */
-    makeLead(id: string): boolean {
-        const members = this.getMembers();
-        const updated = members.map(m => ({
-            ...m,
-            role: m.id === id ? MemberRole.Lead : MemberRole.Member
-        }));
-        this.saveAndEmit(updated);
-        return true;
+    /** Make a member the Team Lead. */
+    makeLead(id: string): Observable<TeamMember> {
+        return this.http.put<TeamMember>(`${this.apiUrl}/${id}/make-lead`, {}).pipe(
+            tap(() => this.refresh())
+        );
     }
 
-    /** Remove (deactivate) a team member. Cannot remove Lead or last member. */
-    remove(id: string): { success: boolean; error?: string } {
-        const members = this.getMembers();
-        const member = members.find(m => m.id === id);
-
-        if (!member) return { success: false, error: 'Member not found.' };
-        if (member.role === MemberRole.Lead) return { success: false, error: 'Cannot remove the Team Lead. Reassign the Lead role first.' };
-        if (members.length <= 1) return { success: false, error: 'Cannot remove the last team member.' };
-
-        const updated = members.filter(m => m.id !== id);
-        this.saveAndEmit(updated);
-        return { success: true };
+    /** Remove (deactivate) a team member. */
+    remove(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            tap(() => this.refresh())
+        );
     }
 
-    /** Get the current Team Lead. */
-    getLead(): TeamMember | undefined {
-        return this.getMembers().find(m => m.role === MemberRole.Lead);
+    /** Check if any members exist (API call). */
+    checkExists(): Observable<boolean> {
+        return this.http.get<boolean>(`${this.apiUrl}/exists`);
     }
 
-    /** Replace all members (used by seed/import). */
-    setAll(members: TeamMember[]): void {
-        this.saveAndEmit(members);
+    /** Get all active team members from the API. */
+    getAll(): Observable<TeamMember[]> {
+        return this.http.get<TeamMember[]>(this.apiUrl);
     }
 
-    /** Clear all team members. */
-    clearAll(): void {
-        this.storage.clear(this.STORAGE_KEY);
-        this.membersSubject.next([]);
-    }
-
-    private loadFromStorage(): void {
-        const members = this.storage.getAll<TeamMember>(this.STORAGE_KEY);
-        this.membersSubject.next(members);
-    }
-
-    private saveAndEmit(members: TeamMember[]): void {
-        this.storage.saveAll(this.STORAGE_KEY, members);
-        this.membersSubject.next(members);
-    }
-
-    private generateId(): string {
-        return crypto.randomUUID();
+    /** Bulk-save team members (for setup flow). Returns Promise that resolves when all are created. */
+    async bulkCreate(members: { name: string; role: MemberRole }[]): Promise<void> {
+        for (const member of members) {
+            const created = await firstValueFrom(
+                this.http.post<TeamMember>(this.apiUrl, { name: member.name })
+            );
+            // If this member should be lead and isn't, make them lead
+            if (member.role === MemberRole.Lead && created.role !== MemberRole.Lead) {
+                await firstValueFrom(
+                    this.http.put<TeamMember>(`${this.apiUrl}/${created.id}/make-lead`, {})
+                );
+            }
+        }
+        this.refresh();
     }
 }

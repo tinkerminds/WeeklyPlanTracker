@@ -1,0 +1,262 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { BacklogService, BacklogItem } from '../../core/services/backlog.service';
+import { ToastService } from '../../core/services/toast.service';
+import { NavigationService } from '../../core/services/navigation.service';
+import { BacklogCategory } from '../../core/enums/enums';
+
+@Component({
+    selector: 'app-manage-backlog',
+    standalone: true,
+    imports: [CommonModule, FormsModule],
+    template: `
+    <div class="backlog-container">
+      <button class="btn-back" (click)="nav.navigateTo('home')">← Home</button>
+
+      @if (showForm) {
+        <div class="form-section">
+          <h2>{{ editingItem ? 'Edit Backlog Item' : 'Add a New Backlog Item' }}</h2>
+          <div class="form-group">
+            <label>Category</label>
+            <select [(ngModel)]="formData.category" class="form-control">
+              <option [value]="BacklogCategory.ClientFocused">Client Focused</option>
+              <option [value]="BacklogCategory.TechDebt">Tech Debt</option>
+              <option [value]="BacklogCategory.RAndD">R&D</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" [(ngModel)]="formData.title" placeholder="What's this work item?" class="form-control" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea [(ngModel)]="formData.description" placeholder="Describe the work (optional)" class="form-control textarea" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Estimated Hours</label>
+            <input type="number" [(ngModel)]="formData.estimatedHours" min="1" class="form-control small" />
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" (click)="saveItem()" [disabled]="!formData.title.trim() || formData.estimatedHours <= 0">Save This Item</button>
+            @if (editingItem) {
+              <button class="btn btn-danger" (click)="deleteItem()">Delete This Item</button>
+            }
+            <button class="btn btn-secondary" (click)="cancelForm()">← Go Back</button>
+          </div>
+        </div>
+      } @else {
+        <h2>Manage Backlog</h2>
+        <button class="btn btn-primary add-btn" (click)="openAddForm()">+ Add a New Backlog Item</button>
+        <div class="filters">
+          <div class="category-filters">
+            <button class="filter-pill" [class.active]="filterClient" [class.pill-blue]="filterClient" (click)="toggleFilter('client')">Client Focused</button>
+            <button class="filter-pill" [class.active]="filterTech" [class.pill-red]="filterTech" (click)="toggleFilter('tech')">Tech Debt</button>
+            <button class="filter-pill" [class.active]="filterRnD" [class.pill-green]="filterRnD" (click)="toggleFilter('rnd')">R&D</button>
+          </div>
+          <div class="right-filters">
+            <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" class="form-control small-select">
+              <option value="available">Available Only</option>
+              <option value="all">All</option>
+            </select>
+            <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search by title" class="form-control search-input" autocomplete="off" />
+          </div>
+        </div>
+        <div class="item-list">
+          @if (filteredItems.length === 0) {
+            <div class="empty-state">No backlog items match your filters.</div>
+          }
+          @for (item of filteredItems; track item.id) {
+            <div class="item-card" [class.archived]="item.isArchived">
+              <div class="item-main">
+                <span class="item-title">{{ item.title }}</span>
+                <div class="item-badges">
+                  <span class="category-badge" [class]="'cat-' + item.category">{{ getCategoryLabel(item.category) }}</span>
+                  <span class="status-badge" [class.badge-archived]="item.isArchived">{{ item.isArchived ? 'Archived' : 'Available' }}</span>
+                  <span class="hours-text">{{ item.estimatedHours }}h est.</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="btn btn-outline-sm" (click)="openEditForm(item)">View & Edit</button>
+                @if (!item.isArchived) {
+                  <button class="btn btn-danger-sm" (click)="archiveItem(item)">Archive</button>
+                } @else {
+                  <button class="btn btn-outline-sm" (click)="unarchiveItem(item)">Restore</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  `,
+    styles: [`
+    .backlog-container { max-width: 700px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+    .btn-back { background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
+    .btn-back:hover { color: #94a3b8; }
+    h2 { font-size: 22px; color: #e2e8f0; margin-bottom: 20px; }
+    .add-btn { margin-bottom: 20px; }
+    .filters { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .category-filters { display: flex; gap: 8px; }
+    .right-filters { display: flex; gap: 8px; }
+    .filter-pill { padding: 6px 14px; border-radius: 20px; border: 1px solid #475569; background: transparent; color: #94a3b8; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .filter-pill.active { color: #fff; }
+    .pill-blue { background: #3b82f6; border-color: #3b82f6; }
+    .pill-red { background: #ef4444; border-color: #ef4444; }
+    .pill-green { background: #22c55e; border-color: #22c55e; }
+    .search-input { width: 160px; }
+    .small-select { padding: 6px 10px !important; font-size: 13px !important; border-radius: 8px !important; }
+    .item-list { display: flex; flex-direction: column; gap: 10px; }
+    .item-card { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; transition: all 0.2s; gap: 12px; }
+    .item-card:hover { border-color: #475569; }
+    .item-card.archived { opacity: 0.6; }
+    .item-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .item-title { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .item-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .category-badge { padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .cat-ClientFocused { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .cat-TechDebt { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .cat-RAndD { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .status-badge { padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background: rgba(148,163,184,0.2); color: #94a3b8; }
+    .badge-archived { background: rgba(239,68,68,0.15); color: #f87171; }
+    .hours-text { font-size: 12px; color: #64748b; }
+    .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn { padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
+    .btn-secondary { background: #334155; color: #94a3b8; }
+    .btn-secondary:hover { background: #475569; color: #e2e8f0; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-outline-sm { padding: 6px 12px; background: transparent; color: #3b82f6; border: 1px solid #3b82f6; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-outline-sm:hover { background: rgba(59,130,246,0.1); }
+    .btn-danger-sm { padding: 6px 12px; background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-danger-sm:hover { background: rgba(239,68,68,0.1); }
+    .empty-state { text-align: center; padding: 40px; color: #64748b; background: #1e293b; border-radius: 12px; border: 2px dashed #334155; }
+    .form-section { animation: fadeIn 0.2s ease-out; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 14px; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: #e2e8f0; font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit; box-sizing: border-box; }
+    .form-control:focus { border-color: #3b82f6; }
+    .form-control.small { width: 120px; }
+    .form-control.textarea { resize: vertical; }
+    .form-actions { display: flex; gap: 10px; margin-top: 24px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  `]
+})
+export class ManageBacklogComponent implements OnInit, OnDestroy {
+    BacklogCategory = BacklogCategory;
+    allItems: BacklogItem[] = [];
+    filteredItems: BacklogItem[] = [];
+    filterClient = false;
+    filterTech = false;
+    filterRnD = false;
+    statusFilter = 'available';
+    searchQuery = '';
+    showForm = false;
+    editingItem: BacklogItem | null = null;
+    formData = this.emptyForm();
+    private sub!: Subscription;
+
+    constructor(
+        private backlogService: BacklogService,
+        private toastService: ToastService,
+        public nav: NavigationService
+    ) { }
+
+    ngOnInit(): void {
+        this.backlogService.refresh();
+        this.sub = this.backlogService.items$.subscribe(items => {
+            this.allItems = items;
+            this.applyFilters();
+        });
+    }
+
+    ngOnDestroy(): void { this.sub?.unsubscribe(); }
+
+    toggleFilter(type: string): void {
+        if (type === 'client') this.filterClient = !this.filterClient;
+        if (type === 'tech') this.filterTech = !this.filterTech;
+        if (type === 'rnd') this.filterRnD = !this.filterRnD;
+        this.applyFilters();
+    }
+
+    applyFilters(): void {
+        let items = [...this.allItems];
+        if (this.statusFilter === 'available') items = items.filter(i => !i.isArchived);
+        const anyCategory = this.filterClient || this.filterTech || this.filterRnD;
+        if (anyCategory) {
+            items = items.filter(i => {
+                if (this.filterClient && i.category === BacklogCategory.ClientFocused) return true;
+                if (this.filterTech && i.category === BacklogCategory.TechDebt) return true;
+                if (this.filterRnD && i.category === BacklogCategory.RAndD) return true;
+                return false;
+            });
+        }
+        if (this.searchQuery.trim()) {
+            const q = this.searchQuery.toLowerCase();
+            items = items.filter(i => i.title.toLowerCase().includes(q));
+        }
+        this.filteredItems = items;
+    }
+
+    getCategoryLabel(cat: BacklogCategory): string {
+        switch (cat) {
+            case BacklogCategory.ClientFocused: return 'Client Focused';
+            case BacklogCategory.TechDebt: return 'Tech Debt';
+            case BacklogCategory.RAndD: return 'R&D';
+        }
+    }
+
+    openAddForm(): void { this.formData = this.emptyForm(); this.editingItem = null; this.showForm = true; }
+
+    openEditForm(item: BacklogItem): void {
+        this.editingItem = item;
+        this.formData = { title: item.title, description: item.description || '', category: item.category, estimatedHours: item.estimatedHours };
+        this.showForm = true;
+    }
+
+    cancelForm(): void { this.showForm = false; this.editingItem = null; }
+
+    saveItem(): void {
+        if (this.editingItem) {
+            this.backlogService.update(this.editingItem.id, this.formData).subscribe({
+                next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; this.editingItem = null; },
+                error: () => this.toastService.error('Failed to save item.')
+            });
+        } else {
+            this.backlogService.create(this.formData).subscribe({
+                next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; },
+                error: () => this.toastService.error('Failed to create item.')
+            });
+        }
+    }
+
+    deleteItem(): void {
+        if (!this.editingItem) return;
+        this.backlogService.delete(this.editingItem.id).subscribe({
+            next: () => { this.toastService.success('Backlog item deleted.'); this.showForm = false; this.editingItem = null; },
+            error: () => this.toastService.error('Failed to delete item.')
+        });
+    }
+
+    archiveItem(item: BacklogItem): void {
+        this.backlogService.archive(item.id).subscribe({
+            next: () => this.toastService.success('Backlog item archived.'),
+            error: () => this.toastService.error('Failed to archive item.')
+        });
+    }
+
+    unarchiveItem(item: BacklogItem): void {
+        this.backlogService.unarchive(item.id).subscribe({
+            next: () => this.toastService.success('Backlog item restored.'),
+            error: () => this.toastService.error('Failed to restore item.')
+        });
+    }
+
+    private emptyForm() {
+        return { title: '', description: '', category: BacklogCategory.ClientFocused, estimatedHours: 0 };
+    }
+}

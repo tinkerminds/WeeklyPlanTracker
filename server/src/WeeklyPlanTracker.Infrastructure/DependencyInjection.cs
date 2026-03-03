@@ -14,10 +14,14 @@ namespace WeeklyPlanTracker.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Use InMemory database for session-based storage
-            // Data persists while the server is running, resets on restart
+            // Use Azure SQL Server for persistent data storage
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("WeeklyPlanTrackerDb"));
+                options.UseSqlServer(connectionString, sqlOptions =>
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null)));
 
             // Register Unit of Work and repositories
             services.AddScoped<IUnitOfWork, UnitOfWork>();

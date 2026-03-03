@@ -1,34 +1,29 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { TeamMember } from '../models/team-member.model';
 import { MemberRole } from '../enums/enums';
 
 /**
- * Tracks the currently logged-in user via sessionStorage.
- * Uses sessionStorage (not localStorage) so closing the browser tab logs out.
+ * Tracks the currently logged-in user in memory only.
+ * Page refresh = must re-select user on "Who are you?" screen.
+ * No browser storage used — all team data lives in Azure SQL via the API.
  */
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private readonly SESSION_KEY = 'weekly_plan_tracker_current_user';
     private currentUserSubject = new BehaviorSubject<TeamMember | null>(null);
 
+    /** Observable of the current logged-in user. */
     currentUser$ = this.currentUserSubject.asObservable();
 
-    constructor() {
-        this.loadFromSession();
-    }
-
-    /** Log in as a team member. */
+    /** Log in as a team member (in-memory only). */
     login(member: TeamMember): void {
-        sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(member));
         this.currentUserSubject.next(member);
     }
 
     /** Log out the current user. */
     logout(): void {
-        sessionStorage.removeItem(this.SESSION_KEY);
         this.currentUserSubject.next(null);
     }
 
@@ -49,14 +44,6 @@ export class AuthService {
 
     /** Update the stored user (e.g., when role changes). */
     refreshUser(updatedMember: TeamMember): void {
-        sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(updatedMember));
         this.currentUserSubject.next(updatedMember);
-    }
-
-    private loadFromSession(): void {
-        const data = sessionStorage.getItem(this.SESSION_KEY);
-        if (data) {
-            this.currentUserSubject.next(JSON.parse(data));
-        }
     }
 }
