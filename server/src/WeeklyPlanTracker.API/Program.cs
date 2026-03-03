@@ -14,12 +14,15 @@ builder.Services.AddControllers()
 // Register Infrastructure layer (DbContext, repositories, UoW)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// CORS — allow Angular dev server
+// CORS — allow Angular dev server and deployed frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularDev", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(
+                "http://localhost:4200",
+                "https://weekly-plan-tracker-app.azurewebsites.net"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
