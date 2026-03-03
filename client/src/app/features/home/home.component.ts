@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -168,6 +168,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   hasActivePlan = false;
   private sub!: Subscription;
 
+  private cdr = inject(ChangeDetectorRef);
+
   constructor(
     private authService: AuthService,
     public nav: NavigationService,
@@ -206,10 +208,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (plan) => {
         this.hasActivePlan = !!plan;
         this.buildMenu();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.hasActivePlan = false;
         this.buildMenu();
+        this.cdr.detectChanges();
       }
     });
   }

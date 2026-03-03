@@ -14,6 +14,7 @@ export type Screen =
     | 'start-week'
     | 'setup-week'
     | 'plan-my-work'
+    | 'backlog-picker'
     | 'review-freeze'
     | 'update-progress'
     | 'team-progress'

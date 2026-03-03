@@ -63,6 +63,7 @@ namespace WeeklyPlanTracker.API.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public MemberRole Role { get; set; }
+        public bool IsPlanningDone { get; set; }
     }
 
     /// <summary>Summary of an assignment within a weekly plan.</summary>

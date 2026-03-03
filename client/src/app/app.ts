@@ -12,6 +12,9 @@ import { HomeComponent } from './features/home/home.component';
 import { ManageBacklogComponent } from './features/manage-backlog/manage-backlog.component';
 import { ManageTeamComponent } from './features/manage-team/manage-team.component';
 import { WeekSetupComponent } from './features/week-setup/week-setup.component';
+import { PlanMyWorkComponent } from './features/plan-my-work/plan-my-work.component';
+import { BacklogPickerComponent } from './features/backlog-picker/backlog-picker.component';
+import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.component';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +27,10 @@ import { WeekSetupComponent } from './features/week-setup/week-setup.component';
     HomeComponent,
     ManageBacklogComponent,
     ManageTeamComponent,
-    WeekSetupComponent
+    WeekSetupComponent,
+    PlanMyWorkComponent,
+    BacklogPickerComponent,
+    ReviewFreezeComponent
   ],
   template: `
     <div class="app-shell">
@@ -56,6 +62,9 @@ import { WeekSetupComponent } from './features/week-setup/week-setup.component';
           @case ('manage-backlog') { <app-manage-backlog></app-manage-backlog> }
           @case ('manage-team') { <app-manage-team></app-manage-team> }
           @case ('start-week') { <app-week-setup></app-week-setup> }
+          @case ('plan-my-work') { <app-plan-my-work></app-plan-my-work> }
+          @case ('backlog-picker') { <app-backlog-picker></app-backlog-picker> }
+          @case ('review-freeze') { <app-review-freeze></app-review-freeze> }
           @default {
             <div class="coming-soon">
               <h2>🚧 Coming Soon</h2>

@@ -20,6 +20,9 @@ namespace WeeklyPlanTracker.Infrastructure.Data.Configurations
                 .WithMany(tm => tm.WeeklyPlanMembers)
                 .HasForeignKey(e => e.TeamMemberId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(e => e.IsPlanningDone)
+                .HasDefaultValue(false);
         }
     }
 }

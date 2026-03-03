@@ -271,6 +271,29 @@ namespace WeeklyPlanTracker.API.Controllers
         }
 
         // ─────────────────────────────────────────────
+        // PUT — Toggle planning done status
+        // ─────────────────────────────────────────────
+
+        /// <summary>PUT /api/weekly-plans/{id}/members/{memberId}/toggle-planning-done</summary>
+        [HttpPut("{id:guid}/members/{memberId:guid}/toggle-planning-done")]
+        public async Task<ActionResult<object>> TogglePlanningDone(Guid id, Guid memberId)
+        {
+            var plan = await _unitOfWork.WeeklyPlans.GetWithDetailsAsync(id);
+            if (plan == null)
+                return NotFound();
+
+            var wpm = plan.WeeklyPlanMembers.FirstOrDefault(m => m.TeamMemberId == memberId);
+            if (wpm == null)
+                return NotFound("Member not found in this plan.");
+
+            wpm.IsPlanningDone = !wpm.IsPlanningDone;
+            _unitOfWork.WeeklyPlans.Update(plan);
+            await _unitOfWork.SaveChangesAsync();
+
+            return Ok(new { isPlanningDone = wpm.IsPlanningDone });
+        }
+
+        // ─────────────────────────────────────────────
         // Mapping helpers
         // ─────────────────────────────────────────────
 
@@ -304,7 +327,8 @@ namespace WeeklyPlanTracker.API.Controllers
                 {
                     Id = wpm.TeamMemberId,
                     Name = wpm.TeamMember.Name,
-                    Role = wpm.TeamMember.Role
+                    Role = wpm.TeamMember.Role,
+                    IsPlanningDone = wpm.IsPlanningDone
                 })
                 .ToList();
 

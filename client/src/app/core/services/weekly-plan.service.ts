@@ -60,4 +60,11 @@ export class WeeklyPlanService {
     cancel(id: string): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    /** Toggle "I'm done planning" status for a member. */
+    togglePlanningDone(planId: string, memberId: string): Observable<{ isPlanningDone: boolean }> {
+        return this.http.put<{ isPlanningDone: boolean }>(
+            `${this.apiUrl}/${planId}/members/${memberId}/toggle-planning-done`, {}
+        );
+    }
 }

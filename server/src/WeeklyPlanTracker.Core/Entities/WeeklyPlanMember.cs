@@ -11,5 +11,8 @@ namespace WeeklyPlanTracker.Core.Entities
 
         public Guid TeamMemberId { get; set; }
         public TeamMember TeamMember { get; set; } = null!;
+
+        /// <summary>Whether this member has marked themselves as done planning.</summary>
+        public bool IsPlanningDone { get; set; }
     }
 }

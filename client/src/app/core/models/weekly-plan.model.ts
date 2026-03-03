@@ -24,6 +24,7 @@ export interface WeeklyPlanMember {
     id: string;
     name: string;
     role: MemberRole;
+    isPlanningDone: boolean;
 }
 
 export interface PlanAssignmentSummary {
