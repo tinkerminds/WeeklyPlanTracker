@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
 import { TeamMember } from '../../core/models/team-member.model';
 import { MemberRole } from '../../core/enums/enums';
 
@@ -37,7 +38,7 @@ interface MenuCard {
       <!-- Menu Cards -->
       <div class="card-grid">
         @for (card of menuCards; track card.title) {
-          <button class="menu-card" [class.card-danger]="card.danger" (click)="nav.navigateTo($any(card.screen))">
+          <button class="menu-card" [class.card-danger]="card.danger" (click)="onCardClick(card)">
             <span class="card-icon">{{ card.icon }}</span>
             <div class="card-text">
               <span class="card-title">{{ card.title }}</span>
@@ -99,14 +100,14 @@ interface MenuCard {
       flex-shrink: 0;
     }
     .card-grid {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
     .menu-card {
       display: flex;
-      align-items: center;
-      gap: 16px;
+      align-items: flex-start;
+      gap: 12px;
       width: 100%;
       padding: 18px 20px;
       background: #1e293b;
@@ -121,7 +122,6 @@ interface MenuCard {
     .menu-card:hover {
       border-color: #475569;
       background: #253449;
-      transform: translateX(4px);
     }
     .card-danger {
       border-color: rgba(239, 68, 68, 0.3);
@@ -134,9 +134,7 @@ interface MenuCard {
       color: #ef4444;
     }
     .card-icon {
-      font-size: 24px;
-      width: 40px;
-      text-align: center;
+      font-size: 22px;
       flex-shrink: 0;
     }
     .card-text {
@@ -158,6 +156,7 @@ interface MenuCard {
       font-size: 22px;
       color: #475569;
       flex-shrink: 0;
+      display: none;
     }
   `]
 })
@@ -166,18 +165,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   isLead = false;
   menuCards: MenuCard[] = [];
   statusMessage = '';
+  hasActivePlan = false;
   private sub!: Subscription;
 
   constructor(
     private authService: AuthService,
-    public nav: NavigationService
+    public nav: NavigationService,
+    private weeklyPlanService: WeeklyPlanService
   ) { }
 
   ngOnInit(): void {
     this.sub = this.authService.currentUser$.subscribe(user => {
       this.user = user;
       this.isLead = user?.role === MemberRole.Lead;
-      this.buildMenu();
+      this.checkActivePlan();
     });
   }
 
@@ -192,21 +193,80 @@ export class HomeComponent implements OnInit, OnDestroy {
     return 'Good evening';
   }
 
-  private buildMenu(): void {
-    if (this.isLead) {
-      this.statusMessage = "No planning weeks yet. Click 'Start a New Week' to begin!";
-      this.menuCards = [
-        { icon: '🚀', title: 'Start a New Week', subtitle: 'Set up a new planning cycle.', screen: 'start-week' },
-        { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
-        { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
-        { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
-      ];
+  onCardClick(card: MenuCard): void {
+    if (card.screen === 'cancel-week') {
+      this.cancelWeek();
     } else {
-      this.statusMessage = "There's no active plan for you right now. Check back on Tuesday or ask your Team Lead.";
-      this.menuCards = [
-        { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
-        { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
-      ];
+      this.nav.navigateTo(card.screen as any);
     }
   }
+
+  private checkActivePlan(): void {
+    this.weeklyPlanService.getCurrent().subscribe({
+      next: (plan) => {
+        this.hasActivePlan = !!plan;
+        this.buildMenu();
+      },
+      error: () => {
+        this.hasActivePlan = false;
+        this.buildMenu();
+      }
+    });
+  }
+
+  private buildMenu(): void {
+    if (this.isLead) {
+      if (this.hasActivePlan) {
+        this.statusMessage = "Planning is open — team members can pick their work items.";
+        this.menuCards = [
+          { icon: '❄️', title: 'Review and Freeze the Plan', subtitle: "Check everyone's hours and lock the plan.", screen: 'review-freeze' },
+          { icon: '📝', title: 'Plan My Work', subtitle: 'Pick backlog items and commit hours.', screen: 'plan-my-work' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+          { icon: '🗑️', title: "Cancel This Week's Planning", subtitle: 'Erase all plans and start over.', screen: 'cancel-week', danger: true },
+        ];
+      } else {
+        this.statusMessage = "No active plan. Click 'Start a New Week' to begin!";
+        this.menuCards = [
+          { icon: '🚀', title: 'Start a New Week', subtitle: 'Set up a new planning cycle.', screen: 'start-week' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+        ];
+      }
+    } else {
+      if (this.hasActivePlan) {
+        this.statusMessage = "Planning is open — pick your backlog items and commit your 30 hours.";
+        this.menuCards = [
+          { icon: '📝', title: 'Plan My Work', subtitle: 'Pick backlog items and commit your 30 hours.', screen: 'plan-my-work' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+        ];
+      } else {
+        this.statusMessage = "No active plan right now. Check back when your Team Lead starts a new week.";
+        this.menuCards = [
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+        ];
+      }
+    }
+  }
+
+  private cancelWeek(): void {
+    if (!confirm('Are you sure you want to cancel this week\'s planning? This will erase all plans.')) return;
+
+    this.weeklyPlanService.getCurrent().subscribe({
+      next: (plan) => {
+        if (!plan) return;
+        this.weeklyPlanService.cancel(plan.id).subscribe({
+          next: () => {
+            this.hasActivePlan = false;
+            this.buildMenu();
+          }
+        });
+      }
+    });
+  }
 }
+
