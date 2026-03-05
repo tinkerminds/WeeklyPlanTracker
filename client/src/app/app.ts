@@ -22,6 +22,7 @@ import { BacklogPickerComponent } from './features/backlog-picker/backlog-picker
 import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.component';
 import { UpdateProgressComponent } from './features/update-progress/update-progress.component';
 import { TeamProgressComponent } from './features/team-progress/team-progress.component';
+import { PastWeeksComponent } from './features/past-weeks/past-weeks.component';
 
 @Component({
   selector: 'app-root',
@@ -40,7 +41,8 @@ import { TeamProgressComponent } from './features/team-progress/team-progress.co
     BacklogPickerComponent,
     ReviewFreezeComponent,
     UpdateProgressComponent,
-    TeamProgressComponent
+    TeamProgressComponent,
+    PastWeeksComponent
   ],
   template: `
     <div class="app-shell">
@@ -86,6 +88,7 @@ import { TeamProgressComponent } from './features/team-progress/team-progress.co
           @case ('review-freeze') { <app-review-freeze></app-review-freeze> }
           @case ('update-progress') { <app-update-progress></app-update-progress> }
           @case ('team-progress') { <app-team-progress></app-team-progress> }
+          @case ('past-weeks') { <app-past-weeks></app-past-weeks> }
           @default {
             <div class="coming-soon">
               <h2>🚧 Coming Soon</h2>
