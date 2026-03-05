@@ -21,6 +21,7 @@ import { PlanMyWorkComponent } from './features/plan-my-work/plan-my-work.compon
 import { BacklogPickerComponent } from './features/backlog-picker/backlog-picker.component';
 import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.component';
 import { UpdateProgressComponent } from './features/update-progress/update-progress.component';
+import { TeamProgressComponent } from './features/team-progress/team-progress.component';
 
 @Component({
   selector: 'app-root',
@@ -38,7 +39,8 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
     PlanMyWorkComponent,
     BacklogPickerComponent,
     ReviewFreezeComponent,
-    UpdateProgressComponent
+    UpdateProgressComponent,
+    TeamProgressComponent
   ],
   template: `
     <div class="app-shell">
@@ -83,6 +85,7 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
           @case ('backlog-picker') { <app-backlog-picker></app-backlog-picker> }
           @case ('review-freeze') { <app-review-freeze></app-review-freeze> }
           @case ('update-progress') { <app-update-progress></app-update-progress> }
+          @case ('team-progress') { <app-team-progress></app-team-progress> }
           @default {
             <div class="coming-soon">
               <h2>🚧 Coming Soon</h2>
