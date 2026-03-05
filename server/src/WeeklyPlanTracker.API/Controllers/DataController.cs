@@ -29,34 +29,20 @@ namespace WeeklyPlanTracker.API.Controllers
         {
             try
             {
-                var teamMembers = await _db.TeamMembers.AsNoTracking().ToListAsync();
-                var backlogItems = await _db.BacklogItems.AsNoTracking().ToListAsync();
-                var weeklyPlanMembers = await _db.Set<WeeklyPlanMember>().AsNoTracking()
-                    .Select(m => new { m.WeeklyPlanId, m.TeamMemberId, m.IsPlanningDone })
-                    .ToListAsync();
+                var teamMembers = await _db.TeamMembers.AsNoTracking()
+                    .Select(t => new { t.Id, t.Name, t.Role, t.IsActive, t.CreatedAt }).ToListAsync();
+                var backlogItems = await _db.BacklogItems.AsNoTracking()
+                    .Select(b => new { b.Id, b.Title, b.Description, b.Category, b.EstimatedHours, b.IsArchived, b.CreatedAt }).ToListAsync();
                 var weeklyPlans = await _db.WeeklyPlans.AsNoTracking()
-                    .Select(w => new {
-                        w.Id, w.PlanningDate, w.State,
-                        w.ClientFocusedPercent, w.TechDebtPercent, w.RAndDPercent,
-                        w.CreatedAt
-                    }).ToListAsync();
+                    .Select(w => new { w.Id, w.PlanningDate, w.WorkStartDate, w.WorkEndDate, w.State, w.ClientFocusedPercent, w.TechDebtPercent, w.RAndDPercent, w.CreatedAt }).ToListAsync();
+                var weeklyPlanMembers = await _db.Set<WeeklyPlanMember>().AsNoTracking()
+                    .Select(m => new { m.WeeklyPlanId, m.TeamMemberId, m.IsPlanningDone }).ToListAsync();
                 var planAssignments = await _db.PlanAssignments.AsNoTracking()
-                    .Select(a => new {
-                        a.Id, a.WeeklyPlanId, a.TeamMemberId, a.BacklogItemId,
-                        a.CommittedHours, a.HoursCompleted, a.Status, a.CreatedAt
-                    }).ToListAsync();
-                var progressUpdates = await _db.ProgressUpdates.AsNoTracking().ToListAsync();
+                    .Select(a => new { a.Id, a.WeeklyPlanId, a.TeamMemberId, a.BacklogItemId, a.CommittedHours, a.HoursCompleted, a.Status, a.CreatedAt }).ToListAsync();
+                var progressUpdates = await _db.ProgressUpdates.AsNoTracking()
+                    .Select(p => new { p.Id, p.PlanAssignmentId, p.HoursDone, p.Status, p.Notes, p.Timestamp }).ToListAsync();
 
-                var data = new
-                {
-                    TeamMembers = teamMembers,
-                    BacklogItems = backlogItems,
-                    WeeklyPlans = weeklyPlans,
-                    WeeklyPlanMembers = weeklyPlanMembers,
-                    PlanAssignments = planAssignments,
-                    ProgressUpdates = progressUpdates
-                };
-                return Ok(data);
+                return Ok(new { TeamMembers = teamMembers, BacklogItems = backlogItems, WeeklyPlans = weeklyPlans, WeeklyPlanMembers = weeklyPlanMembers, PlanAssignments = planAssignments, ProgressUpdates = progressUpdates });
             }
             catch (Exception ex)
             {
@@ -147,32 +133,83 @@ namespace WeeklyPlanTracker.API.Controllers
         // ─────────────────────────────────────────────
 
         [HttpPost("import")]
-        public async Task<IActionResult> Import([FromBody] ImportDataRequest data)
+        public async Task<IActionResult> Import([FromBody] System.Text.Json.JsonElement data)
         {
-            // Clear existing data
-            _db.ProgressUpdates.RemoveRange(_db.ProgressUpdates);
-            _db.PlanAssignments.RemoveRange(_db.PlanAssignments);
-            _db.Set<WeeklyPlanMember>().RemoveRange(_db.Set<WeeklyPlanMember>());
-            _db.WeeklyPlans.RemoveRange(_db.WeeklyPlans);
-            _db.BacklogItems.RemoveRange(_db.BacklogItems);
-            _db.TeamMembers.RemoveRange(_db.TeamMembers);
-            await _db.SaveChangesAsync();
+            try
+            {
+                var opts = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                opts.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
-            // Import
-            if (data.TeamMembers != null)
-                _db.TeamMembers.AddRange(data.TeamMembers);
-            if (data.BacklogItems != null)
-                _db.BacklogItems.AddRange(data.BacklogItems);
-            if (data.WeeklyPlans != null)
-                _db.WeeklyPlans.AddRange(data.WeeklyPlans);
-            if (data.PlanAssignments != null)
-                _db.PlanAssignments.AddRange(data.PlanAssignments);
-            if (data.ProgressUpdates != null)
-                _db.ProgressUpdates.AddRange(data.ProgressUpdates);
+                // Clear existing data
+                _db.ProgressUpdates.RemoveRange(_db.ProgressUpdates);
+                _db.PlanAssignments.RemoveRange(_db.PlanAssignments);
+                _db.Set<WeeklyPlanMember>().RemoveRange(_db.Set<WeeklyPlanMember>());
+                _db.WeeklyPlans.RemoveRange(_db.WeeklyPlans);
+                _db.BacklogItems.RemoveRange(_db.BacklogItems);
+                _db.TeamMembers.RemoveRange(_db.TeamMembers);
+                await _db.SaveChangesAsync();
 
-            await _db.SaveChangesAsync();
+                // Import each collection
+                if (data.TryGetProperty("teamMembers", out var tm) || data.TryGetProperty("TeamMembers", out tm))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<TeamMember>>(tm.GetRawText(), opts);
+                    if (items != null) _db.TeamMembers.AddRange(items);
+                }
 
-            return Ok(new { message = "Data restored from file!" });
+                if (data.TryGetProperty("backlogItems", out var bi) || data.TryGetProperty("BacklogItems", out bi))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<BacklogItem>>(bi.GetRawText(), opts);
+                    if (items != null) _db.BacklogItems.AddRange(items);
+                }
+
+                if (data.TryGetProperty("weeklyPlans", out var wp) || data.TryGetProperty("WeeklyPlans", out wp))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<WeeklyPlan>>(wp.GetRawText(), opts);
+                    if (items != null)
+                    {
+                        // Clear navigation properties to avoid tracking conflicts
+                        foreach (var p in items) { p.WeeklyPlanMembers = new List<WeeklyPlanMember>(); p.PlanAssignments = new List<PlanAssignment>(); }
+                        _db.WeeklyPlans.AddRange(items);
+                    }
+                }
+
+                if (data.TryGetProperty("weeklyPlanMembers", out var wpm) || data.TryGetProperty("WeeklyPlanMembers", out wpm))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<WeeklyPlanMember>>(wpm.GetRawText(), opts);
+                    if (items != null)
+                    {
+                        foreach (var m in items) { m.TeamMember = null!; m.WeeklyPlan = null!; }
+                        _db.Set<WeeklyPlanMember>().AddRange(items);
+                    }
+                }
+
+                if (data.TryGetProperty("planAssignments", out var pa) || data.TryGetProperty("PlanAssignments", out pa))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<PlanAssignment>>(pa.GetRawText(), opts);
+                    if (items != null)
+                    {
+                        foreach (var a in items) { a.TeamMember = null!; a.BacklogItem = null!; a.WeeklyPlan = null!; a.ProgressUpdates = new List<ProgressUpdate>(); }
+                        _db.PlanAssignments.AddRange(items);
+                    }
+                }
+
+                if (data.TryGetProperty("progressUpdates", out var pu) || data.TryGetProperty("ProgressUpdates", out pu))
+                {
+                    var items = System.Text.Json.JsonSerializer.Deserialize<List<ProgressUpdate>>(pu.GetRawText(), opts);
+                    if (items != null)
+                    {
+                        foreach (var p in items) { p.PlanAssignment = null!; }
+                        _db.ProgressUpdates.AddRange(items);
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                return Ok(new { message = "Data restored from file!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -192,15 +229,5 @@ namespace WeeklyPlanTracker.API.Controllers
 
             return Ok(new { message = "All data reset." });
         }
-    }
-
-    /// <summary>Import request containing all entity collections.</summary>
-    public class ImportDataRequest
-    {
-        public List<TeamMember>? TeamMembers { get; set; }
-        public List<BacklogItem>? BacklogItems { get; set; }
-        public List<WeeklyPlan>? WeeklyPlans { get; set; }
-        public List<PlanAssignment>? PlanAssignments { get; set; }
-        public List<ProgressUpdate>? ProgressUpdates { get; set; }
     }
 }

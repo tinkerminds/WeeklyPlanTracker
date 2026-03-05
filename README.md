@@ -1,121 +1,141 @@
-# 📋 Weekly Plan Tracker
+# Weekly Plan Tracker
 
-A team planning tool where a software team plans their weekly work every Tuesday. The Team Lead sets category distribution, team members pick backlog items and commit hours, the plan gets frozen, and progress is tracked through the work period.
+hey! this is my weekly plan tracker app that i built for my team. basically every Tuesday our team plans what work we're gonna do for the next 4 days (Wednesday to Monday). the Team Lead picks how much time goes to client stuff vs tech debt vs R&D, then everyone picks their tasks and commits hours.
 
-## Tech Stack
+## what it does
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Angular 19 (TypeScript) |
-| **Backend** | ASP.NET Core 8 Web API (C#) |
-| **Database** | Azure SQL Server + Entity Framework Core |
-| **CI/CD** | GitHub Actions → Azure App Services |
+- team lead starts a new week and sets the category split (like 50% client, 30% tech debt, 20% R&D)
+- team members pick backlog items and commit their 30 hours
+- lead reviews everything and freezes the plan
+- during the week everyone updates their progress
+- at the end the week gets archived
 
-## Live URLs
+## tech stack
 
-| Service | URL |
-|---------|-----|
-| **Frontend** | https://weekly-plan-tracker-app.azurewebsites.net |
-| **Backend API** | https://weekly-plan-tracker-api.azurewebsites.net |
+- **Frontend**: Angular 19 (TypeScript)
+- **Backend**: ASP.NET Core 8 (C#)
+- **Database**: SQL Server with Entity Framework Core
+- **Deployment**: Azure App Services with GitHub Actions
 
-## Features Implemented
+## live links
 
-### ✅ Screens (8 of 14 complete)
+- App: https://weekly-plan-tracker-app.azurewebsites.net
+- API: https://weekly-plan-tracker-api.azurewebsites.net
 
-| Screen | Description |
-|--------|-------------|
-| **Initial Team Setup** | Add team members, assign Lead role, auto-login on completion |
-| **Login ("Who Are You?")** | Grid of member cards with role badges, click to login |
-| **Home Dashboard** | Dynamic menu cards based on user role + plan state, navbar with Switch/Home |
-| **Manage Team Members** | Add, remove, make lead, role badges |
-| **Manage Backlog** | List view with category badges, add/edit items |
-| **Set Up This Week's Plan** | Date picker (Tuesday), member selection, category % split, open planning |
-| **Plan My Work** | Hours summary, category budgets, My Plan section, done-planning toggle (persisted to DB) |
-| **Backlog Item Picker** | Category filter pills with budget remaining, Pick Item → modal with hour validation |
-| **Review & Freeze the Plan** | Category summary table, member cards with Ready/Not Ready badges, freeze validation, cancel planning |
+## screens i built
 
-### ✅ Backend API Endpoints
+all 14 screens from the PRD are done:
 
-| Group | Endpoints |
-|-------|-----------|
-| **Team Members** `/api/team-members` | GET all, GET by ID, POST, PUT, DELETE, PUT make-lead |
-| **Backlog Items** `/api/backlog-items` | GET all (with filters), GET by ID, POST, PUT, PUT archive, DELETE |
-| **Weekly Plans** `/api/weekly-plans` | GET current, GET past, POST, PUT setup, PUT open-planning, PUT freeze, PUT complete, DELETE cancel, PUT toggle-planning-done |
-| **Plan Assignments** `/api/plan-assignments` | GET by week/member, POST, PUT, DELETE |
+1. **Team Setup** - first time setup, add members, pick the lead
+2. **Who Are You** - click your name to login (no passwords, its a team app)
+3. **Home Dashboard** - shows different menu options based on your role and what state the plan is in
+4. **Manage Team Members** - add/remove people, change who's lead
+5. **Manage Backlog** - add work items with categories and hour estimates, filter and search
+6. **Start a New Week** - pick the tuesday date, select who's working, set category %
+7. **Plan My Work** - pick items from backlog, commit hours, see your budget
+8. **Backlog Picker** - shows available items with category budget remaining
+9. **Review & Freeze** - lead sees everyone's plan, validates hours match, freezes it
+10. **Update Progress** - update hours done and status (not started/in progress/done/blocked)
+11. **Team Progress** - dashboard showing overall %, by category, by member with expandable details
+12. **Past Weeks** - view completed weeks with category breakdown and member summaries
+13. **Navbar** - blue top bar with user info, switch user, home, dark/light theme toggle
+14. **Footer** - download data, load from file, seed sample data, reset app
 
-### ✅ State Machine
+## state machine
+
+the weekly plan goes through these states:
 
 ```
 NO_ACTIVE_WEEK → SETUP → PLANNING_OPEN → FROZEN → COMPLETED
+                   ↓           ↓
+                 CANCEL      CANCEL (back to no active week)
 ```
 
-All state transitions are implemented with full validation.
+## how to run locally
 
-### ✅ Data Model
-
-- **TeamMember** — Name, Role (Lead/Member), IsActive
-- **BacklogItem** — Title, Description, Category, EstimatedHours, IsArchived
-- **WeeklyPlan** — PlanningDate, State, Category percentages, computed budget hours
-- **WeeklyPlanMember** — Join table with IsPlanningDone status
-- **PlanAssignment** — Member-Item link with CommittedHours, HoursCompleted, Status
-- **ProgressUpdate** — History log with timestamp, hours, status, notes
-
-## Features Remaining
-
-| Priority | Feature |
-|----------|---------|
-| P1 | Update My Progress (per-task hours + status update) |
-| P1 | Progress API (4 endpoints) |
-| P2 | See Team Progress Dashboard |
-| P2 | Past Weeks screen |
-| P2 | Finish This Week button |
-| P3 | Data Management API (seed/export/import/reset) |
-| P3 | Theme Toggle (light/dark), Backlog search/filter |
-| P4 | Unit + Integration Tests |
-
-## Project Structure
-
+### backend
 ```
-WeeklyPlanTracker/
-├── client/                          # Angular 19 frontend
-│   └── src/app/
-│       ├── core/                    # Models, services, enums
-│       ├── features/                # Screen components
-│       │   ├── team-setup/
-│       │   ├── login/
-│       │   ├── home/
-│       │   ├── manage-team/
-│       │   ├── manage-backlog/
-│       │   ├── week-setup/
-│       │   ├── plan-my-work/
-│       │   ├── backlog-picker/
-│       │   └── review-freeze/
-│       └── shared/                  # Toast, footer components
-├── server/                          # .NET 8 backend
-│   └── src/
-│       ├── WeeklyPlanTracker.API/   # Controllers, DTOs
-│       ├── WeeklyPlanTracker.Core/  # Entities, Enums, Interfaces
-│       └── WeeklyPlanTracker.Infrastructure/  # EF Core, Repositories
-└── .github/workflows/deploy.yml    # CI/CD pipeline
-```
-
-## Running Locally
-
-### Backend
-```bash
 cd server
 dotnet run --project src/WeeklyPlanTracker.API
-# API runs on http://localhost:5297
 ```
+runs on http://localhost:5297
 
-### Frontend
-```bash
+### frontend
+```
 cd client
 npm install
 npx ng serve
-# App runs on http://localhost:4200
+```
+runs on http://localhost:4200
+
+## project structure
+
+```
+WeeklyPlanTracker/
+├── client/                     # angular frontend
+│   └── src/app/
+│       ├── core/              # services, models, enums
+│       │   ├── services/      # api services, auth, theme, toast, navigation
+│       │   ├── models/        # typescript interfaces
+│       │   └── shared/        # toast component, confirm modal
+│       └── features/          # all the screens
+│           ├── team-setup/
+│           ├── login/
+│           ├── home/
+│           ├── manage-team/
+│           ├── manage-backlog/
+│           ├── week-setup/
+│           ├── plan-my-work/
+│           ├── backlog-picker/
+│           ├── review-freeze/
+│           ├── update-progress/
+│           ├── team-progress/
+│           └── past-weeks/
+│
+├── server/                     # .net backend
+│   └── src/
+│       ├── WeeklyPlanTracker.API/            # controllers, DTOs, program.cs
+│       ├── WeeklyPlanTracker.Core/           # entities, enums, interfaces
+│       └── WeeklyPlanTracker.Infrastructure/ # ef core, repositories, migrations
+│
+└── .github/workflows/         # ci/cd pipeline
 ```
 
-## Deployment
+## api endpoints
 
-Pushing to `main` triggers GitHub Actions which builds and deploys both frontend and backend to Azure App Services. Database migrations run automatically on startup.
+| area | endpoints |
+|------|-----------|
+| Team Members | GET/POST/PUT/DELETE `/api/team-members`, PUT make-lead |
+| Backlog Items | GET/POST/PUT/DELETE `/api/backlog-items`, PUT archive |
+| Weekly Plans | GET current/past, POST, PUT setup/open/freeze/complete, DELETE cancel |
+| Plan Assignments | GET by week/member, POST, PUT, DELETE |
+| Data | GET export, POST import/seed, DELETE reset |
+
+## data model
+
+- **TeamMember** - name, role (Lead or Member), active flag
+- **BacklogItem** - title, description, category (Client/TechDebt/R&D), estimated hours
+- **WeeklyPlan** - planning date, state, category percentages
+- **WeeklyPlanMember** - which members are in this week's plan
+- **PlanAssignment** - who's working on what, committed hours, hours done, status
+- **ProgressUpdate** - history log of progress updates with timestamps
+
+## features
+
+- dark mode and light mode (toggle in navbar)
+- download all your data as json backup
+- load data back from a backup file (with confirmation warning)
+- seed sample data to try it out
+- reset everything and start fresh
+- role-based menus (lead sees different options than members)
+- 30 hours per member budget with category budget tracking
+
+## whats left to do
+
+- unit tests (xunit for backend, jasmine for frontend)
+- integration tests
+- need to get 100% code coverage
+
+## deployment
+
+push to main → github actions builds everything → deploys to azure automatically. database migrations run on startup so no manual steps needed.

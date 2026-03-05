@@ -106,7 +106,7 @@ import { PastWeeksComponent } from './features/past-weeks/past-weeks.component';
       @if (isLoggedIn) {
       <footer class="footer-bar">
         <button class="footer-btn" (click)="downloadData()">📥 Download My Data</button>
-        <button class="footer-btn" (click)="fileInput.click()">📤 Load Data from File</button>
+        <button class="footer-btn" (click)="confirmAndLoadFile()">📤 Load Data from File</button>
         <button class="footer-btn" (click)="seedData()">🌱 Seed Sample Data</button>
         <button class="footer-btn footer-btn-danger" (click)="resetApp()">🗑️ Reset App</button>
         <input #fileInput type="file" accept=".json" (change)="onFileSelected($event)" style="display:none" />
@@ -293,6 +293,20 @@ export class App implements OnInit, OnDestroy {
 
   downloadData(): void {
     this.dataService.exportData();
+  }
+
+  async confirmAndLoadFile(): Promise<void> {
+    const ok = await this.confirm.confirm({
+      title: '📤 Load Data from File',
+      message: 'This will REPLACE all your current data (team members, backlog items, plans, and progress) with the data from the selected file. This cannot be undone. Make sure you have a backup first.',
+      confirmText: 'Yes, Replace My Data',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
+    // Trigger file picker after confirmation
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (input) input.click();
   }
 
   onFileSelected(event: Event): void {
