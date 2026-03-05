@@ -27,27 +27,41 @@ namespace WeeklyPlanTracker.API.Controllers
         [HttpGet("export")]
         public async Task<IActionResult> Export()
         {
-            var teamMembers = await _db.TeamMembers.ToListAsync();
-            var backlogItems = await _db.BacklogItems.ToListAsync();
-            var weeklyPlans = await _db.WeeklyPlans
-                .Include(w => w.WeeklyPlanMembers)
-                .Select(w => new {
-                    w.Id, w.PlanningDate, w.State,
-                    w.ClientFocusedPercent, w.TechDebtPercent, w.RAndDPercent,
-                    w.CreatedAt,
-                    WeeklyPlanMembers = w.WeeklyPlanMembers.Select(m => new {
-                        m.WeeklyPlanId, m.TeamMemberId, m.IsPlanningDone
-                    })
-                }).ToListAsync();
-            var planAssignments = await _db.PlanAssignments
-                .Select(a => new {
-                    a.Id, a.WeeklyPlanId, a.TeamMemberId, a.BacklogItemId,
-                    a.CommittedHours, a.HoursCompleted, a.Status, a.CreatedAt
-                }).ToListAsync();
-            var progressUpdates = await _db.ProgressUpdates.ToListAsync();
+            try
+            {
+                var teamMembers = await _db.TeamMembers.AsNoTracking().ToListAsync();
+                var backlogItems = await _db.BacklogItems.AsNoTracking().ToListAsync();
+                var weeklyPlanMembers = await _db.Set<WeeklyPlanMember>().AsNoTracking()
+                    .Select(m => new { m.WeeklyPlanId, m.TeamMemberId, m.IsPlanningDone })
+                    .ToListAsync();
+                var weeklyPlans = await _db.WeeklyPlans.AsNoTracking()
+                    .Select(w => new {
+                        w.Id, w.PlanningDate, w.State,
+                        w.ClientFocusedPercent, w.TechDebtPercent, w.RAndDPercent,
+                        w.CreatedAt
+                    }).ToListAsync();
+                var planAssignments = await _db.PlanAssignments.AsNoTracking()
+                    .Select(a => new {
+                        a.Id, a.WeeklyPlanId, a.TeamMemberId, a.BacklogItemId,
+                        a.CommittedHours, a.HoursCompleted, a.Status, a.CreatedAt
+                    }).ToListAsync();
+                var progressUpdates = await _db.ProgressUpdates.AsNoTracking().ToListAsync();
 
-            var data = new { TeamMembers = teamMembers, BacklogItems = backlogItems, WeeklyPlans = weeklyPlans, PlanAssignments = planAssignments, ProgressUpdates = progressUpdates };
-            return Ok(data);
+                var data = new
+                {
+                    TeamMembers = teamMembers,
+                    BacklogItems = backlogItems,
+                    WeeklyPlans = weeklyPlans,
+                    WeeklyPlanMembers = weeklyPlanMembers,
+                    PlanAssignments = planAssignments,
+                    ProgressUpdates = progressUpdates
+                };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         // ─────────────────────────────────────────────
