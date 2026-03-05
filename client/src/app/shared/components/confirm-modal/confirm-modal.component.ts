@@ -33,7 +33,7 @@ import { ConfirmService, ConfirmOptions } from '../../../core/services/confirm.s
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal-card {
-      background: #1e293b; border: 1px solid #475569; border-radius: 14px;
+      background: var(--bg-secondary); border: 1px solid var(--border-hover); border-radius: 14px;
       padding: 28px 32px; max-width: 440px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       animation: slideUp 0.2s ease;
     }
@@ -41,29 +41,29 @@ import { ConfirmService, ConfirmOptions } from '../../../core/services/confirm.s
 
     .modal-title {
       font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
-      color: #e2e8f0; margin: 0 0 10px;
+      color: var(--text-primary); margin: 0 0 10px;
     }
     .modal-message {
-      font-family: 'Inter', sans-serif; font-size: 14px; color: #94a3b8;
+      font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text-secondary);
       line-height: 1.6; margin: 0 0 24px;
     }
     .modal-actions {
       display: flex; justify-content: flex-end; gap: 10px;
     }
     .btn-cancel {
-      padding: 10px 20px; background: #334155; color: #94a3b8; border: none;
+      padding: 10px 20px; background: var(--bg-card-hover); color: var(--text-secondary); border: none;
       border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
       font-family: 'Inter', sans-serif; transition: all 0.2s;
     }
-    .btn-cancel:hover { background: #475569; color: #e2e8f0; }
+    .btn-cancel:hover { background: var(--border-hover); color: var(--text-primary); }
     .btn-confirm {
-      padding: 10px 20px; background: #3b82f6; color: #fff; border: none;
+      padding: 10px 20px; background: var(--color-primary); color: #fff; border: none;
       border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
       font-family: 'Inter', sans-serif; transition: all 0.2s;
     }
-    .btn-confirm:hover { background: #2563eb; }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
+    .btn-confirm:hover { background: var(--color-primary-hover); }
+    .btn-danger { background: var(--color-danger); }
+    .btn-danger:hover { background: var(--color-danger-hover); }
   `]
 })
 export class ConfirmModalComponent implements OnInit, OnDestroy {

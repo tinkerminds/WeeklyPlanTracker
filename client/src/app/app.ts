@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription, switchMap } from 'rxjs';
 import { NavigationService, Screen } from './core/services/navigation.service';
@@ -7,6 +7,7 @@ import { TeamMemberService } from './core/services/team-member.service';
 import { DataService } from './core/services/data.service';
 import { ToastService } from './core/services/toast.service';
 import { ConfirmService } from './core/services/confirm.service';
+import { ThemeService } from './core/services/theme.service';
 import { MemberRole } from './core/enums/enums';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
@@ -44,13 +45,22 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
       <!-- Top Navbar -->
       <nav class="navbar">
         <span class="navbar-brand" (click)="goHome()">📋 Weekly Plan Tracker</span>
-        <div class="navbar-actions">
+        <div class="navbar-right">
           @if (isLoggedIn) {
-            <button class="nav-btn" (click)="switchUser()">🔄 Switch</button>
+            <div class="nav-user">
+              <span class="nav-user-name">{{ currentUserName }}</span>
+              <span class="nav-role-badge" [class.lead]="currentUserRole === 'Lead'">{{ currentUserRole === 'Lead' ? 'Lead' : 'Member' }}</span>
+            </div>
           }
-          @if (currentScreen !== 'setup' && currentScreen !== 'login') {
-            <button class="nav-btn" (click)="goHome()">🏠 Home</button>
-          }
+          <div class="navbar-actions">
+            @if (isLoggedIn) {
+              <button class="nav-btn" (click)="switchUser()">🔄 Switch</button>
+            }
+            @if (currentScreen !== 'setup' && currentScreen !== 'login') {
+              <button class="nav-btn" (click)="goHome()">🏠 Home</button>
+            }
+            <button class="nav-btn theme-btn" (click)="toggleTheme()">{{ theme.isDark ? '☀️ Light' : '🌙 Dark' }}</button>
+          </div>
         </div>
       </nav>
 
@@ -101,55 +111,70 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
   styles: [`
     .app-shell {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      background: var(--gradient-bg);
+      transition: background 0.3s ease;
     }
     .navbar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 24px; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(8px);
-      border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 100;
+      padding: 12px 24px; background: var(--bg-navbar); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
+      transition: background 0.3s, border-color 0.3s;
     }
     .navbar-brand {
       font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
-      color: #e2e8f0; cursor: pointer; transition: color 0.2s;
+      color: var(--text-primary); cursor: pointer; transition: color 0.2s;
     }
-    .navbar-brand:hover { color: #3b82f6; }
+    .navbar-brand:hover { color: var(--color-primary); }
+    .navbar-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { display: flex; align-items: center; gap: 8px; }
+    .nav-user-name {
+      font-size: 13px; font-weight: 600; color: var(--text-primary);
+      padding: 4px 10px; border: 2px solid var(--color-primary); border-radius: 20px;
+    }
+    .nav-role-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+      background: var(--color-member); color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .nav-role-badge.lead { background: var(--color-lead); color: #000; }
     .navbar-actions { display: flex; gap: 8px; }
     .nav-btn {
-      background: #334155; color: #94a3b8; border: none; padding: 8px 14px;
+      background: var(--bg-card-hover); color: var(--text-secondary); border: none; padding: 8px 14px;
       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
       transition: all 0.2s; font-family: 'Inter', sans-serif;
     }
-    .nav-btn:hover { background: #475569; color: #e2e8f0; }
+    .nav-btn:hover { background: var(--border-hover); color: var(--text-primary); }
+    .theme-btn { min-width: 90px; }
     .main-content { padding-bottom: 70px; }
     .coming-soon { max-width: 400px; margin: 80px auto; text-align: center; font-family: 'Inter', sans-serif; }
 
     .footer-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
-      border-top: 1px solid #334155; z-index: 100;
+      padding: 10px 20px; background: var(--bg-footer); backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border-color); z-index: 100;
+      transition: background 0.3s, border-color 0.3s;
     }
     .footer-btn {
-      background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 6px 14px;
+      background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 6px 14px;
       border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
       font-family: 'Inter', sans-serif; transition: all 0.2s; white-space: nowrap;
     }
-    .footer-btn:hover { background: #334155; color: #e2e8f0; border-color: #475569; }
-    .footer-btn-danger { border-color: #ef4444; color: #ef4444; }
-    .footer-btn-danger:hover { background: #ef4444; color: #fff; }
-    .coming-soon h2 { font-size: 24px; color: #e2e8f0; margin-bottom: 8px; }
-    .coming-soon p { color: #94a3b8; margin-bottom: 24px; }
+    .footer-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); border-color: var(--border-hover); }
+    .footer-btn-danger { border-color: var(--color-danger); color: var(--color-danger); }
+    .footer-btn-danger:hover { background: var(--color-danger); color: #fff; }
+    .coming-soon h2 { font-size: 24px; color: var(--text-heading); margin-bottom: 8px; }
+    .coming-soon p { color: var(--text-secondary); margin-bottom: 24px; }
     .btn-primary {
-      background: #3b82f6; color: #fff; border: none; padding: 12px 24px;
+      background: var(--color-primary); color: #fff; border: none; padding: 12px 24px;
       border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:hover { background: var(--color-primary-hover); }
     .loading-screen {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 60vh; gap: 16px; font-family: 'Inter', sans-serif; color: #94a3b8;
+      min-height: 60vh; gap: 16px; font-family: 'Inter', sans-serif; color: var(--text-secondary);
     }
     .spinner {
-      width: 40px; height: 40px; border: 4px solid #334155; border-top-color: #3b82f6;
+      width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--color-primary);
       border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -159,6 +184,8 @@ export class App implements OnInit, OnDestroy {
   title = 'Weekly Plan Tracker';
   currentScreen: Screen = 'loading';
   isLoggedIn = false;
+  currentUserName = '';
+  currentUserRole = '';
   private subs: Subscription[] = [];
   private initDone = false;
   constructor(
@@ -167,7 +194,8 @@ export class App implements OnInit, OnDestroy {
     private teamMemberService: TeamMemberService,
     private dataService: DataService,
     private toast: ToastService,
-    private confirm: ConfirmService
+    private confirm: ConfirmService,
+    public theme: ThemeService
   ) { }
 
   ngOnInit(): void {
@@ -180,7 +208,11 @@ export class App implements OnInit, OnDestroy {
 
     // 2) Subscribe to auth changes
     this.subs.push(
-      this.authService.currentUser$.subscribe(user => this.isLoggedIn = !!user)
+      this.authService.currentUser$.subscribe(user => {
+        this.isLoggedIn = !!user;
+        this.currentUserName = user?.name || '';
+        this.currentUserRole = user?.role || '';
+      })
     );
 
     // 3) Check if team members exist, if so auto-login as Lead and go to home
@@ -248,6 +280,10 @@ export class App implements OnInit, OnDestroy {
   switchUser(): void {
     this.authService.logout();
     this.nav.navigateTo('login');
+  }
+
+  toggleTheme(): void {
+    this.theme.toggle();
   }
 
   downloadData(): void {

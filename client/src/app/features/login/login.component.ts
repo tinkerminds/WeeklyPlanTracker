@@ -52,11 +52,11 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     }
     .login-header h1 {
       font-size: 28px;
-      color: #e2e8f0;
+      color: var(--text-primary);
       margin-bottom: 8px;
     }
     .subtitle {
-      color: #94a3b8;
+      color: var(--text-secondary);
       font-size: 16px;
     }
     .member-grid {
@@ -70,18 +70,18 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       gap: 16px;
       width: 100%;
       padding: 16px 20px;
-      background: #1e293b;
-      border: 2px solid #334155;
+      background: var(--bg-secondary);
+      border: 2px solid var(--bg-card-hover);
       border-radius: 12px;
-      color: #e2e8f0;
+      color: var(--text-primary);
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
       text-align: left;
     }
     .member-btn:hover {
-      border-color: #3b82f6;
-      background: #1e3a5f;
+      border-color: var(--color-primary);
+      background: var(--login-card-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
@@ -89,7 +89,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -106,10 +106,10 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     .empty-state {
       text-align: center;
       padding: 40px;
-      color: #64748b;
-      background: #1e293b;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
       border-radius: 12px;
-      border: 2px dashed #334155;
+      border: 2px dashed var(--bg-card-hover);
     }
     .empty-state .btn {
       margin-top: 16px;
@@ -128,20 +128,20 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       transition: all 0.2s;
     }
     .btn-primary {
-      background: #3b82f6;
+      background: var(--color-primary);
       color: #fff;
     }
     .btn-primary:hover {
-      background: #2563eb;
+      background: var(--color-primary-hover);
     }
     .btn-link {
       background: none;
-      color: #64748b;
+      color: var(--text-muted);
       padding: 8px;
       font-size: 14px;
     }
     .btn-link:hover {
-      color: #94a3b8;
+      color: var(--text-secondary);
     }
   `]
 })

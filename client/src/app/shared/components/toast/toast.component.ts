@@ -39,9 +39,9 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
       animation: slideIn 0.3s ease-out;
       min-width: 280px;
     }
-    .toast-success { background: #16a34a; }
-    .toast-warning { background: #d97706; }
-    .toast-error { background: #dc2626; }
+    .toast-success { background: var(--color-success-dark); }
+    .toast-warning { background: var(--color-warning); }
+    .toast-error { background: var(--color-danger-hover); }
     .toast-close {
       background: none;
       border: none;

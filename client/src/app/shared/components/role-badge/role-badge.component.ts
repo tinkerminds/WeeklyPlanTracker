@@ -22,12 +22,12 @@ import { MemberRole } from '../../../core/enums/enums';
     }
     .badge-lead {
       background: rgba(245, 158, 11, 0.2);
-      color: #f59e0b;
+      color: var(--color-warning);
       border: 1px solid rgba(245, 158, 11, 0.4);
     }
     .badge-member {
       background: rgba(59, 130, 246, 0.2);
-      color: #3b82f6;
+      color: var(--color-primary);
       border: 1px solid rgba(59, 130, 246, 0.4);
     }
   `]

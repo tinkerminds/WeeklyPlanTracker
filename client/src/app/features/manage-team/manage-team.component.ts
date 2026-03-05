@@ -46,31 +46,31 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
   `,
     styles: [`
     .manage-container { max-width: 600px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    .btn-back { background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
-    .btn-back:hover { color: #94a3b8; }
-    h2 { font-size: 22px; color: #e2e8f0; margin-bottom: 20px; }
+    .btn-back { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
+    .btn-back:hover { color: var(--text-secondary); }
+    h2 { font-size: 22px; color: var(--text-primary); margin-bottom: 20px; }
     .add-member-form { display: flex; gap: 12px; margin-bottom: 24px; }
-    .name-input { flex: 1; padding: 12px 16px; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: #e2e8f0; font-size: 15px; outline: none; transition: border-color 0.2s; }
-    .name-input:focus { border-color: #3b82f6; }
-    .name-input::placeholder { color: #64748b; }
+    .name-input { flex: 1; padding: 12px 16px; border: 2px solid var(--bg-card-hover); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .name-input:focus { border-color: var(--color-primary); }
+    .name-input::placeholder { color: var(--text-muted); }
     .btn { padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: #3b82f6; color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: #2563eb; }
-    .btn-outline { background: transparent; color: #3b82f6; border: 1px solid #3b82f6; padding: 8px 14px; font-size: 13px; }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .btn-outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 8px 14px; font-size: 13px; }
     .btn-outline:hover { background: rgba(59,130,246,0.1); }
-    .btn-danger-sm { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+    .btn-danger-sm { background: transparent; color: var(--color-danger); border: 1px solid var(--color-danger); padding: 8px 14px; font-size: 13px; border-radius: 8px; }
     .btn-danger-sm:hover { background: rgba(239,68,68,0.1); }
     .member-list { display: flex; flex-direction: column; gap: 12px; }
     .member-card {
       display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
-      background: #1e293b; border-radius: 12px; border: 1px solid #334155; transition: all 0.3s; animation: fadeIn 0.3s ease-out;
+      background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--bg-card-hover); transition: all 0.3s; animation: fadeIn 0.3s ease-out;
     }
-    .member-card:hover { border-color: #475569; }
+    .member-card:hover { border-color: var(--border-hover); }
     .member-info { display: flex; align-items: center; gap: 12px; }
-    .member-name { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+    .member-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
     .member-actions { display: flex; align-items: center; gap: 8px; }
-    .lead-check { color: #f59e0b; font-weight: 600; font-size: 14px; }
+    .lead-check { color: var(--color-warning); font-weight: 600; font-size: 14px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })

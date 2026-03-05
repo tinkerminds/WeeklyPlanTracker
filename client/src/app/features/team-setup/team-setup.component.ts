@@ -69,43 +69,43 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
   styles: [`
     .setup-container { max-width: 600px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .setup-header { text-align: center; margin-bottom: 32px; }
-    .setup-header h1 { font-size: 28px; color: #e2e8f0; margin-bottom: 8px; }
-    .subtitle { color: #94a3b8; font-size: 16px; }
+    .setup-header h1 { font-size: 28px; color: var(--text-primary); margin-bottom: 8px; }
+    .subtitle { color: var(--text-secondary); font-size: 16px; }
     .add-member-form { display: flex; gap: 12px; margin-bottom: 24px; }
     .name-input {
-      flex: 1; padding: 12px 16px; border: 2px solid #334155; border-radius: 8px;
-      background: #1e293b; color: #e2e8f0; font-size: 15px; outline: none; transition: border-color 0.2s;
+      flex: 1; padding: 12px 16px; border: 2px solid var(--bg-card-hover); border-radius: 8px;
+      background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s;
     }
-    .name-input:focus { border-color: #3b82f6; }
-    .name-input::placeholder { color: #64748b; }
+    .name-input:focus { border-color: var(--color-primary); }
+    .name-input::placeholder { color: var(--text-muted); }
     .btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: #3b82f6; color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: #2563eb; }
-    .btn-outline { background: transparent; color: #3b82f6; border: 1px solid #3b82f6; padding: 8px 16px; font-size: 13px; }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .btn-outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 8px 16px; font-size: 13px; }
     .btn-outline:hover { background: rgba(59, 130, 246, 0.1); }
     .btn-remove {
-      background: transparent; color: #64748b; border: 1px solid #475569;
+      background: transparent; color: var(--text-muted); border: 1px solid var(--border-hover);
       width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 14px;
       display: flex; align-items: center; justify-content: center;
     }
-    .btn-remove:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; }
+    .btn-remove:hover { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); border-color: var(--color-danger); }
     .btn-done {
       display: block; width: 100%; margin-top: 32px; padding: 14px;
-      background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 16px;
+      background: linear-gradient(135deg, var(--color-warning), var(--color-warning)); color: #fff; font-size: 16px;
     }
-    .btn-done:hover:not(:disabled) { background: linear-gradient(135deg, #d97706, #b45309); }
+    .btn-done:hover:not(:disabled) { background: linear-gradient(135deg, var(--color-warning), var(--color-warning)); }
     .member-list { display: flex; flex-direction: column; gap: 12px; }
-    .empty-state { text-align: center; padding: 40px; color: #64748b; background: #1e293b; border-radius: 12px; border: 2px dashed #334155; }
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); background: var(--bg-secondary); border-radius: 12px; border: 2px dashed var(--bg-card-hover); }
     .member-card {
       display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
-      background: #1e293b; border-radius: 12px; border: 1px solid #334155; transition: all 0.3s; animation: fadeIn 0.3s ease-out;
+      background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--bg-card-hover); transition: all 0.3s; animation: fadeIn 0.3s ease-out;
     }
-    .member-card:hover { border-color: #475569; }
+    .member-card:hover { border-color: var(--border-hover); }
     .member-info { display: flex; align-items: center; gap: 12px; }
-    .member-name { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+    .member-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
     .member-actions { display: flex; align-items: center; gap: 8px; }
-    .lead-check { color: #f59e0b; font-weight: 600; font-size: 14px; }
+    .lead-check { color: var(--color-warning); font-weight: 600; font-size: 14px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })

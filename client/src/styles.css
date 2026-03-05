@@ -1,9 +1,91 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ===========================
+   Theme Variables
+   =========================== */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --bg-card-hover: #334155;
+  --bg-card-active: #253449;
+  --bg-input: #0f172a;
+  --bg-navbar: rgba(30, 41, 59, 0.8);
+  --bg-footer: rgba(15, 23, 42, 0.95);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --border-color: #334155;
+  --border-hover: #475569;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-heading: #f1f5f9;
+  --text-info: #93c5fd;
+  --text-success-light: #4ade80;
+  --text-danger-light: #f87171;
+  --text-danger-muted: #fca5a5;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  --scrollbar-track: #1e293b;
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748b;
+  --login-card-hover: #1e3a5f;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-card-active: #e8f0fe;
+  --bg-input: #ffffff;
+  --bg-navbar: rgba(255, 255, 255, 0.92);
+  --bg-footer: rgba(248, 250, 252, 0.95);
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+  --border-color: #d1d5db;
+  --border-hover: #9ca3af;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #6b7280;
+  --text-heading: #0f172a;
+  --text-info: #2563eb;
+  --text-success-light: #16a34a;
+  --text-danger-light: #dc2626;
+  --text-danger-muted: #ef4444;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --gradient-bg: linear-gradient(135deg, #f0f4f8 0%, #e8f0fe 50%, #f0f4f8 100%);
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --login-card-hover: #e8f0fe;
+}
+
+/* Brand colors (constant across themes) */
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-success: #22c55e;
+  --color-success-dark: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-lead: #f59e0b;
+  --color-member: #3b82f6;
+  --color-client: #3b82f6;
+  --color-techdebt: #ef4444;
+  --color-rnd: #22c55e;
+}
+
+/* ===========================
    Global Reset & Base Styles
    =========================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -18,9 +100,10 @@ html {
 
 body {
   min-height: 100vh;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -38,13 +121,16 @@ button {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: var(--scrollbar-track);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--scrollbar-thumb-hover);
 }

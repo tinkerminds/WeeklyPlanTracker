@@ -64,7 +64,7 @@ interface MenuCard {
     }
     .greeting-section h1 {
       font-size: 24px;
-      color: #e2e8f0;
+      color: var(--text-primary);
       margin-bottom: 6px;
     }
     .role-tag {
@@ -76,11 +76,11 @@ interface MenuCard {
     }
     .role-lead {
       background: rgba(245, 158, 11, 0.2);
-      color: #f59e0b;
+      color: var(--color-warning);
     }
     .role-member {
       background: rgba(59, 130, 246, 0.2);
-      color: #3b82f6;
+      color: var(--color-primary);
     }
     .status-bar {
       display: flex;
@@ -90,7 +90,7 @@ interface MenuCard {
       background: rgba(59, 130, 246, 0.1);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: 10px;
-      color: #93c5fd;
+      color: var(--text-info);
       font-size: 14px;
       margin-bottom: 28px;
     }
@@ -98,7 +98,7 @@ interface MenuCard {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #3b82f6;
+      background: var(--color-primary);
       flex-shrink: 0;
     }
     .card-grid {
@@ -112,28 +112,28 @@ interface MenuCard {
       gap: 12px;
       width: 100%;
       padding: 18px 20px;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: var(--bg-secondary);
+      border: 1px solid var(--bg-card-hover);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
       text-align: left;
-      color: #e2e8f0;
+      color: var(--text-primary);
     }
     .menu-card:hover {
-      border-color: #475569;
-      background: #253449;
+      border-color: var(--border-hover);
+      background: var(--bg-card-active);
     }
     .card-danger {
       border-color: rgba(239, 68, 68, 0.3);
     }
     .card-danger:hover {
-      border-color: #ef4444;
+      border-color: var(--color-danger);
       background: rgba(239, 68, 68, 0.1);
     }
     .card-danger .card-title {
-      color: #ef4444;
+      color: var(--color-danger);
     }
     .card-icon {
       font-size: 22px;
@@ -148,15 +148,15 @@ interface MenuCard {
     .card-title {
       font-size: 15px;
       font-weight: 600;
-      color: #e2e8f0;
+      color: var(--text-primary);
     }
     .card-subtitle {
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--text-secondary);
     }
     .card-arrow {
       font-size: 22px;
-      color: #475569;
+      color: var(--border-hover);
       flex-shrink: 0;
       display: none;
     }

@@ -123,65 +123,65 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
     }
     .header { margin-bottom: 32px; }
     .back-btn {
-      background: none; border: none; color: #64748b; font-size: 14px;
+      background: none; border: none; color: var(--text-muted); font-size: 14px;
       cursor: pointer; padding: 0; margin-bottom: 12px; font-family: inherit;
       transition: color 0.2s;
     }
-    .back-btn:hover { color: #3b82f6; }
-    .header h1 { font-size: 24px; color: #e2e8f0; margin: 0 0 4px; }
-    .subtitle { color: #94a3b8; font-size: 14px; margin: 0; }
+    .back-btn:hover { color: var(--color-primary); }
+    .header h1 { font-size: 24px; color: var(--text-primary); margin: 0 0 4px; }
+    .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0; }
 
     .section {
-      background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 14px;
       padding: 24px; margin-bottom: 20px;
     }
-    .section-title { font-size: 16px; color: #e2e8f0; margin: 0 0 4px; }
-    .section-desc { font-size: 13px; color: #94a3b8; margin: 0 0 16px; }
+    .section-title { font-size: 16px; color: var(--text-primary); margin: 0 0 4px; }
+    .section-desc { font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; }
 
     /* Date input */
     .date-input {
-      width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155;
-      border-radius: 8px; color: #e2e8f0; font-size: 14px; font-family: inherit;
+      width: 100%; padding: 12px 14px; background: var(--bg-primary); border: 1px solid var(--bg-card-hover);
+      border-radius: 8px; color: var(--text-primary); font-size: 14px; font-family: inherit;
       outline: none; transition: border-color 0.2s; cursor: pointer;
     }
-    .date-input:focus { border-color: #3b82f6; }
-    .input-error { border-color: #ef4444 !important; }
-    .error-msg { display: block; color: #ef4444; font-size: 12px; margin-top: 6px; }
+    .date-input:focus { border-color: var(--color-primary); }
+    .input-error { border-color: var(--color-danger) !important; }
+    .error-msg { display: block; color: var(--color-danger); font-size: 12px; margin-top: 6px; }
     .date-info {
-      margin-top: 8px; color: #93c5fd; font-size: 13px;
+      margin-top: 8px; color: var(--text-info); font-size: 13px;
     }
 
     /* Member grid */
     .member-grid { display: flex; flex-direction: column; gap: 8px; }
     .member-card {
       display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-      background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+      background: var(--bg-primary); border: 1px solid var(--bg-card-hover); border-radius: 10px;
       cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
-      color: #e2e8f0; width: 100%; text-align: left;
+      color: var(--text-primary); width: 100%; text-align: left;
     }
-    .member-card:hover { border-color: #475569; background: #1a2540; }
-    .member-card.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.08); }
+    .member-card:hover { border-color: var(--border-hover); background: var(--bg-card-active); }
+    .member-card.selected { border-color: var(--color-primary); background: rgba(59, 130, 246, 0.08); }
     .member-check { font-size: 16px; }
     .member-name { flex: 1; font-weight: 500; }
     .member-role { font-size: 16px; }
-    .role-lead { color: #f59e0b; }
+    .role-lead { color: var(--color-warning); }
     .selection-summary {
-      margin-top: 10px; font-size: 13px; color: #94a3b8; text-align: center;
+      margin-top: 10px; font-size: 13px; color: var(--text-secondary); text-align: center;
     }
-    .empty-msg { color: #64748b; text-align: center; padding: 20px; font-size: 14px; }
+    .empty-msg { color: var(--text-muted); text-align: center; padding: 20px; font-size: 14px; }
 
     /* Percent inputs */
     .percent-grid {
       display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
     }
     .percent-field { display: flex; flex-direction: column; gap: 6px; }
-    .percent-label { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .percent-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
     .percent-input {
-      width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155;
-      border-radius: 8px; color: #e2e8f0; font-size: 16px; font-family: inherit;
+      width: 100%; padding: 12px 14px; background: var(--bg-primary); border: 1px solid var(--bg-card-hover);
+      border-radius: 8px; color: var(--text-primary); font-size: 16px; font-family: inherit;
       outline: none; transition: border-color 0.2s;
     }
-    .percent-input:focus { border-color: #3b82f6; }
+    .percent-input:focus { border-color: var(--color-primary); }
 
     /* Total bar */
     .total-bar {
@@ -189,8 +189,8 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       margin-top: 16px; padding: 10px 14px; border-radius: 8px;
       font-size: 14px; font-weight: 600;
     }
-    .total-ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
-    .total-error { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .total-ok { background: rgba(34, 197, 94, 0.1); color: var(--text-success-light); border: 1px solid rgba(34, 197, 94, 0.2); }
+    .total-error { background: rgba(239, 68, 68, 0.1); color: var(--text-danger-light); border: 1px solid rgba(239, 68, 68, 0.2); }
     .total-hint { font-weight: 400; font-size: 13px; }
 
     /* Action buttons */
@@ -202,10 +202,10 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       cursor: pointer; transition: all 0.2s; font-family: inherit; border: none;
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: #3b82f6; color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: #2563eb; }
-    .btn-secondary { background: #334155; color: #94a3b8; }
-    .btn-secondary:hover { background: #475569; color: #e2e8f0; }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .btn-secondary { background: var(--bg-card-hover); color: var(--text-secondary); }
+    .btn-secondary:hover { background: var(--border-hover); color: var(--text-primary); }
   `]
 })
 export class WeekSetupComponent implements OnInit {
