@@ -41,9 +41,9 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
   `,
   styles: [`
     .login-container {
-      max-width: 500px;
+      max-width: 960px;
       margin: 60px auto;
-      padding: 0 20px;
+      padding: 0 24px;
       font-family: 'Inter', sans-serif;
     }
     .login-header {
@@ -51,33 +51,35 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       margin-bottom: 36px;
     }
     .login-header h1 {
-      font-size: 28px;
-      color: var(--text-primary);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-heading);
       margin-bottom: 8px;
     }
     .subtitle {
       color: var(--text-secondary);
-      font-size: 16px;
+      font-size: 17px;
     }
     .member-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
     .member-btn {
       display: flex;
       align-items: center;
       gap: 16px;
       width: 100%;
-      padding: 16px 20px;
-      background: var(--bg-secondary);
-      border: 2px solid var(--bg-card-hover);
-      border-radius: 12px;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 14px;
       color: var(--text-primary);
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
       text-align: left;
+      box-shadow: var(--shadow-sm);
     }
     .member-btn:hover {
       border-color: var(--color-primary);
@@ -86,22 +88,22 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
     .avatar {
-      width: 44px;
-      height: 44px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 18px;
       color: #fff;
       flex-shrink: 0;
     }
     .name {
       flex: 1;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 17px;
+      font-weight: 700;
     }
     .empty-state {
       text-align: center;
