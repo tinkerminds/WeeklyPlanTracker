@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -213,9 +213,6 @@ export class BacklogPickerComponent implements OnInit {
   modalHours = 0;
   modalError = '';
   adding = false;
-
-  private cdr = inject(ChangeDetectorRef);
-
   constructor(
     private authService: AuthService,
     private weeklyPlanService: WeeklyPlanService,
@@ -353,7 +350,6 @@ export class BacklogPickerComponent implements OnInit {
         this.toast.success(`Added! ${this.modalItem!.title} \u2014 ${this.modalHours}h`);
         this.closeModal();
         this.adding = false;
-        this.cdr.detectChanges();
       },
       error: (err) => {
         this.modalError = err.error || 'Failed to add item.';
@@ -376,7 +372,6 @@ export class BacklogPickerComponent implements OnInit {
         this.backlogService.refresh();
         this.backlogService.items$.subscribe(items => {
           this.availableItems = items;
-          this.cdr.detectChanges();
         });
 
         this.planAssignmentService.getByWeek(plan.id).subscribe({
@@ -387,12 +382,11 @@ export class BacklogPickerComponent implements OnInit {
               this.myAssignments = all.filter(a => a.teamMemberId === user.id);
             }
             this.loading = false;
-            this.cdr.detectChanges();
           },
-          error: () => { this.loading = false; this.cdr.detectChanges(); }
+          error: () => { this.loading = false; }
         });
       },
-      error: () => { this.loading = false; this.cdr.detectChanges(); }
+      error: () => { this.loading = false; }
     });
   }
 }

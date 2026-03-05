@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
@@ -185,9 +185,6 @@ export class PlanMyWorkComponent implements OnInit {
   myAssignments: PlanAssignment[] = [];
   allAssignments: PlanAssignment[] = [];
   isReady = false;
-
-  private cdr = inject(ChangeDetectorRef);
-
   constructor(
     private authService: AuthService,
     private weeklyPlanService: WeeklyPlanService,
@@ -217,7 +214,6 @@ export class PlanMyWorkComponent implements OnInit {
         } else {
           this.toast.success('Unmarked \u2014 you can keep editing your plan.');
         }
-        this.cdr.detectChanges();
       },
       error: (err) => {
         this.toast.error(err.error || 'Failed to update status.');
@@ -276,7 +272,6 @@ export class PlanMyWorkComponent implements OnInit {
         this.myAssignments = this.myAssignments.filter(x => x.id !== a.id);
         this.allAssignments = this.allAssignments.filter(x => x.id !== a.id);
         this.toast.success(`Removed "${a.backlogItemTitle}"`);
-        this.cdr.detectChanges();
       },
       error: (err) => {
         this.toast.error(err.error || 'Failed to remove.');
@@ -312,15 +307,13 @@ export class PlanMyWorkComponent implements OnInit {
               this.myAssignments = all.filter(a => a.teamMemberId === user.id);
             }
             this.loading = false;
-            this.cdr.detectChanges();
           },
-          error: () => { this.loading = false; this.cdr.detectChanges(); }
+          error: () => { this.loading = false; }
         });
       },
       error: () => {
         this.loading = false;
         this.toast.error('Failed to load plan.');
-        this.cdr.detectChanges();
       }
     });
   }

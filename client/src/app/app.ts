@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription, switchMap } from 'rxjs';
 import { NavigationService, Screen } from './core/services/navigation.service';
@@ -161,8 +161,6 @@ export class App implements OnInit, OnDestroy {
   isLoggedIn = false;
   private subs: Subscription[] = [];
   private initDone = false;
-  private cdr = inject(ChangeDetectorRef);
-
   constructor(
     private nav: NavigationService,
     private authService: AuthService,
@@ -177,7 +175,6 @@ export class App implements OnInit, OnDestroy {
     this.subs.push(
       this.nav.currentScreen$.subscribe(screen => {
         this.currentScreen = screen;
-        this.cdr.detectChanges();
       })
     );
 
@@ -203,26 +200,22 @@ export class App implements OnInit, OnDestroy {
                 this.currentScreen = 'login';
                 this.nav.navigateTo('login');
               }
-              this.cdr.detectChanges();
             },
             error: () => {
               // If fetching members fails, fall back to login
               this.currentScreen = 'login';
               this.nav.navigateTo('login');
-              this.cdr.detectChanges();
             }
           });
         } else {
           this.currentScreen = 'setup';
           this.nav.navigateTo('setup');
-          this.cdr.detectChanges();
         }
       },
       error: () => {
         this.initDone = true;
         this.currentScreen = 'setup';
         this.nav.navigateTo('setup');
-        this.cdr.detectChanges();
       }
     });
 
@@ -232,7 +225,6 @@ export class App implements OnInit, OnDestroy {
         this.initDone = true;
         this.currentScreen = 'setup';
         this.nav.navigateTo('setup');
-        this.cdr.detectChanges();
       }
     }, 5000);
   }

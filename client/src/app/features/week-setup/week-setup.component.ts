@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationService } from '../../core/services/navigation.service';
@@ -220,8 +220,6 @@ export class WeekSetupComponent implements OnInit {
   techDebtPercent = 0;
   rndPercent = 0;
   totalPercent = 0;
-  private cdr = inject(ChangeDetectorRef);
-
   saving = false;
 
   constructor(
@@ -238,7 +236,6 @@ export class WeekSetupComponent implements OnInit {
         this.allMembers = members.filter(m => m.isActive);
         // Pre-select all members
         this.allMembers.forEach(m => this.selectedMemberIds.add(m.id));
-        this.cdr.detectChanges();
       }
     });
 

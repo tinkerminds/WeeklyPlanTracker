@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ToastService, Toast } from '../../../core/services/toast.service';
 
 @Component({
-    selector: 'app-toast',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-toast',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="toast-container">
       @for (toast of toasts; track toast.id) {
         <div class="toast" [class]="'toast-' + toast.type">
@@ -16,7 +16,7 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .toast-container {
       position: fixed;
       top: 20px;
@@ -59,14 +59,14 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
   `]
 })
 export class ToastComponent {
-    toasts: Toast[] = [];
-    private toastService = inject(ToastService);
+  toasts: Toast[] = [];
+  private toastService = inject(ToastService);
 
-    constructor() {
-        this.toastService.toasts$.subscribe((toasts: Toast[]) => this.toasts = toasts);
-    }
+  constructor() {
+    this.toastService.toasts$.subscribe((toasts: Toast[]) => this.toasts = toasts);
+  }
 
-    dismiss(id: number): void {
-        this.toastService.dismiss(id);
-    }
+  dismiss(id: number): void {
+    this.toastService.dismiss(id);
+  }
 }

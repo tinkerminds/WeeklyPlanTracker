@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
 import { PlanAssignmentService, PlanAssignment } from '../../core/services/plan-assignment.service';
@@ -240,9 +240,6 @@ export class ReviewFreezeComponent implements OnInit {
   allAssignments: PlanAssignment[] = [];
   freezeIssues: string[] = [];
   expandedMember: string | null = null;
-
-  private cdr = inject(ChangeDetectorRef);
-
   constructor(
     private weeklyPlanService: WeeklyPlanService,
     private planAssignmentService: PlanAssignmentService,
@@ -318,7 +315,6 @@ export class ReviewFreezeComponent implements OnInit {
       error: (err) => {
         this.freezing = false;
         this.toast.error(err.error?.message || 'Failed to freeze the plan.');
-        this.cdr.detectChanges();
       }
     });
   }
@@ -362,14 +358,12 @@ export class ReviewFreezeComponent implements OnInit {
             this.allAssignments = all;
             this.computeIssues();
             this.loading = false;
-            this.cdr.detectChanges();
           },
-          error: () => { this.loading = false; this.cdr.detectChanges(); }
+          error: () => { this.loading = false; }
         });
       },
       error: () => {
         this.loading = false;
-        this.cdr.detectChanges();
       }
     });
   }

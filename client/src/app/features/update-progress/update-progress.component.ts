@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -161,9 +161,6 @@ export class UpdateProgressComponent implements OnInit {
     myAssignments: PlanAssignment[] = [];
     progressData: { [id: string]: { hoursCompleted: number; status: string } } = {};
     saving: { [id: string]: boolean } = {};
-
-    private cdr = inject(ChangeDetectorRef);
-
     constructor(
         private authService: AuthService,
         private weeklyPlanService: WeeklyPlanService,
@@ -219,12 +216,10 @@ export class UpdateProgressComponent implements OnInit {
                 }
                 this.saving[a.id] = false;
                 this.toast.success('Progress updated!');
-                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.saving[a.id] = false;
                 this.toast.error(err.error || 'Failed to update progress.');
-                this.cdr.detectChanges();
             }
         });
     }
@@ -257,12 +252,11 @@ export class UpdateProgressComponent implements OnInit {
                             this.saving[a.id] = false;
                         }
                         this.loading = false;
-                        this.cdr.detectChanges();
                     },
-                    error: () => { this.loading = false; this.cdr.detectChanges(); }
+                    error: () => { this.loading = false; }
                 });
             },
-            error: () => { this.loading = false; this.cdr.detectChanges(); }
+            error: () => { this.loading = false; }
         });
     }
 }

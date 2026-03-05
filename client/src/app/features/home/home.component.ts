@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -169,9 +169,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   statusMessage = '';
   hasActivePlan = false;
   private sub!: Subscription;
-
-  private cdr = inject(ChangeDetectorRef);
-
   constructor(
     private authService: AuthService,
     public nav: NavigationService,
@@ -219,13 +216,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.planState = plan?.state || '';
         this.currentPlanId = plan?.id || '';
         this.buildMenu();
-        this.cdr.detectChanges();
       },
       error: () => {
         this.hasActivePlan = false;
         this.planState = '';
         this.buildMenu();
-        this.cdr.detectChanges();
       }
     });
   }
@@ -321,7 +316,6 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.hasActivePlan = false;
             this.planState = '';
             this.buildMenu();
-            this.cdr.detectChanges();
           }
         });
       }
@@ -343,7 +337,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.hasActivePlan = false;
         this.planState = '';
         this.buildMenu();
-        this.cdr.detectChanges();
       },
       error: (err) => {
         this.toast.error(err.error || 'Failed to complete the week.');
