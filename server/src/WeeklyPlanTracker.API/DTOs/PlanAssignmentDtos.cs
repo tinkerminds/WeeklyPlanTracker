@@ -19,6 +19,14 @@ namespace WeeklyPlanTracker.API.DTOs
         public int CommittedHours { get; set; }
     }
 
+    /// <summary>Request to update progress (hours and status) on an assignment.</summary>
+    public class UpdateProgressRequest
+    {
+        public decimal HoursCompleted { get; set; }
+        public AssignmentStatus Status { get; set; }
+        public string? Notes { get; set; }
+    }
+
     // ── Response DTOs ──
 
     /// <summary>Full plan assignment response with related entity names.</summary>

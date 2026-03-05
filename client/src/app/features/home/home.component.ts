@@ -4,6 +4,8 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { TeamMember } from '../../core/models/team-member.model';
 import { MemberRole } from '../../core/enums/enums';
 
@@ -173,7 +175,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     public nav: NavigationService,
-    private weeklyPlanService: WeeklyPlanService
+    private weeklyPlanService: WeeklyPlanService,
+    private toast: ToastService,
+    private confirmService: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -198,20 +202,28 @@ export class HomeComponent implements OnInit, OnDestroy {
   onCardClick(card: MenuCard): void {
     if (card.screen === 'cancel-week') {
       this.cancelWeek();
+    } else if (card.screen === 'finish-week') {
+      this.finishWeek();
     } else {
       this.nav.navigateTo(card.screen as any);
     }
   }
 
+  private planState: string = '';
+  private currentPlanId: string = '';
+
   private checkActivePlan(): void {
     this.weeklyPlanService.getCurrent().subscribe({
       next: (plan) => {
         this.hasActivePlan = !!plan;
+        this.planState = plan?.state || '';
+        this.currentPlanId = plan?.id || '';
         this.buildMenu();
         this.cdr.detectChanges();
       },
       error: () => {
         this.hasActivePlan = false;
+        this.planState = '';
         this.buildMenu();
         this.cdr.detectChanges();
       }
@@ -220,7 +232,29 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private buildMenu(): void {
     if (this.isLead) {
-      if (this.hasActivePlan) {
+      if (this.hasActivePlan && this.planState === 'Frozen') {
+        // Lead — Frozen state
+        this.statusMessage = "Plan is frozen — the team is now tracking progress.";
+        this.menuCards = [
+          { icon: '📊', title: 'See Team Progress', subtitle: 'Check how the team is doing.', screen: 'team-progress' },
+          { icon: '✏️', title: 'Update My Progress', subtitle: 'Report hours and status on your tasks.', screen: 'update-progress' },
+          { icon: '✅', title: 'Finish This Week', subtitle: 'Close out this cycle.', screen: 'finish-week' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+        ];
+      } else if (this.hasActivePlan && this.planState === 'Setup') {
+        // Lead — Setup state
+        this.statusMessage = "Week setup in progress — configure the plan and open planning.";
+        this.menuCards = [
+          { icon: '⚙️', title: 'Set Up This Week\'s Plan', subtitle: 'Configure members, date, and percentages.', screen: 'start-week' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '👥', title: 'Manage Team Members', subtitle: 'Add or remove team members.', screen: 'manage-team' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+          { icon: '🗑️', title: "Cancel This Week's Planning", subtitle: 'Erase all plans and start over.', screen: 'cancel-week', danger: true },
+        ];
+      } else if (this.hasActivePlan) {
+        // Lead — PlanningOpen state
         this.statusMessage = "Planning is open — team members can pick their work items.";
         this.menuCards = [
           { icon: '❄️', title: 'Review and Freeze the Plan', subtitle: "Check everyone's hours and lock the plan.", screen: 'review-freeze' },
@@ -231,6 +265,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           { icon: '🗑️', title: "Cancel This Week's Planning", subtitle: 'Erase all plans and start over.', screen: 'cancel-week', danger: true },
         ];
       } else {
+        // Lead — No active week
         this.statusMessage = "No active plan. Click 'Start a New Week' to begin!";
         this.menuCards = [
           { icon: '🚀', title: 'Start a New Week', subtitle: 'Set up a new planning cycle.', screen: 'start-week' },
@@ -240,7 +275,17 @@ export class HomeComponent implements OnInit, OnDestroy {
         ];
       }
     } else {
-      if (this.hasActivePlan) {
+      if (this.hasActivePlan && this.planState === 'Frozen') {
+        // Member — Frozen state
+        this.statusMessage = "Plan is frozen — report your progress on assigned tasks.";
+        this.menuCards = [
+          { icon: '✏️', title: 'Update My Progress', subtitle: 'Report hours and status on your tasks.', screen: 'update-progress' },
+          { icon: '📊', title: 'See Team Progress', subtitle: 'See how the team is doing overall.', screen: 'team-progress' },
+          { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
+          { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
+        ];
+      } else if (this.hasActivePlan) {
+        // Member — PlanningOpen state
         this.statusMessage = "Planning is open — pick your backlog items and commit your 30 hours.";
         this.menuCards = [
           { icon: '📝', title: 'Plan My Work', subtitle: 'Pick backlog items and commit your 30 hours.', screen: 'plan-my-work' },
@@ -248,6 +293,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           { icon: '📅', title: 'View Past Weeks', subtitle: 'Look at completed planning cycles.', screen: 'past-weeks' },
         ];
       } else {
+        // Member — No active week
         this.statusMessage = "No active plan right now. Check back when your Team Lead starts a new week.";
         this.menuCards = [
           { icon: '📋', title: 'Manage Backlog', subtitle: 'Add, edit, or browse work items.', screen: 'manage-backlog' },
@@ -257,8 +303,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private cancelWeek(): void {
-    if (!confirm('Are you sure you want to cancel this week\'s planning? This will erase all plans.')) return;
+  private async cancelWeek(): Promise<void> {
+    const ok = await this.confirmService.confirm({
+      title: '🗑️ Cancel Planning',
+      message: 'Are you sure you want to cancel this week\'s planning? This will erase all plans and cannot be undone.',
+      confirmText: 'Yes, Cancel Planning',
+      cancelText: 'Keep Planning',
+      danger: true
+    });
+    if (!ok) return;
 
     this.weeklyPlanService.getCurrent().subscribe({
       next: (plan) => {
@@ -266,9 +319,34 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.weeklyPlanService.cancel(plan.id).subscribe({
           next: () => {
             this.hasActivePlan = false;
+            this.planState = '';
             this.buildMenu();
+            this.cdr.detectChanges();
           }
         });
+      }
+    });
+  }
+
+  private async finishWeek(): Promise<void> {
+    const ok = await this.confirmService.confirm({
+      title: '✅ Finish This Week',
+      message: 'Are you sure you want to finish this week? It will be archived to Past Weeks.',
+      confirmText: 'Yes, Finish Week',
+      cancelText: 'Not Yet'
+    });
+    if (!ok) return;
+
+    if (!this.currentPlanId) return;
+    this.weeklyPlanService.complete(this.currentPlanId).subscribe({
+      next: () => {
+        this.hasActivePlan = false;
+        this.planState = '';
+        this.buildMenu();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.toast.error(err.error || 'Failed to complete the week.');
       }
     });
   }

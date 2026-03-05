@@ -153,6 +153,49 @@ namespace WeeklyPlanTracker.API.Controllers
         }
 
         // ─────────────────────────────────────────────
+        // PUT — Update progress (hours done + status)
+        // ─────────────────────────────────────────────
+
+        /// <summary>PUT /api/plan-assignments/{id}/progress — Update progress on an assignment (Frozen state only).</summary>
+        [HttpPut("{id:guid}/progress")]
+        public async Task<ActionResult<PlanAssignmentResponse>> UpdateProgress(Guid id, [FromBody] UpdateProgressRequest request)
+        {
+            var assignment = await _unitOfWork.PlanAssignments.GetWithDetailsAsync(id);
+            if (assignment == null)
+                return NotFound();
+
+            // Validate the plan is in Frozen state
+            var plan = await _unitOfWork.WeeklyPlans.GetByIdAsync(assignment.WeeklyPlanId);
+            if (plan == null || plan.State != WeekState.Frozen)
+                return BadRequest("Progress can only be updated when the plan is frozen.");
+
+            if (request.HoursCompleted < 0)
+                return BadRequest("Hours completed cannot be negative.");
+
+            // Update the assignment
+            assignment.HoursCompleted = request.HoursCompleted;
+            assignment.Status = request.Status;
+            _unitOfWork.PlanAssignments.Update(assignment);
+
+            // Log a progress update entry
+            var progressUpdate = new ProgressUpdate
+            {
+                Id = Guid.NewGuid(),
+                PlanAssignmentId = assignment.Id,
+                Timestamp = DateTime.UtcNow,
+                HoursDone = request.HoursCompleted,
+                Status = request.Status,
+                Notes = request.Notes
+            };
+            await _unitOfWork.ProgressUpdates.AddAsync(progressUpdate);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Re-fetch with details
+            var updated = await _unitOfWork.PlanAssignments.GetWithDetailsAsync(id);
+            return Ok(MapToResponse(updated!));
+        }
+
+        // ─────────────────────────────────────────────
         // Mapping helper
         // ─────────────────────────────────────────────
 

@@ -4,8 +4,12 @@ import { Subscription, switchMap } from 'rxjs';
 import { NavigationService, Screen } from './core/services/navigation.service';
 import { AuthService } from './core/services/auth.service';
 import { TeamMemberService } from './core/services/team-member.service';
+import { DataService } from './core/services/data.service';
+import { ToastService } from './core/services/toast.service';
+import { ConfirmService } from './core/services/confirm.service';
 import { MemberRole } from './core/enums/enums';
 import { ToastComponent } from './shared/components/toast/toast.component';
+import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
 import { TeamSetupComponent } from './features/team-setup/team-setup.component';
 import { LoginComponent } from './features/login/login.component';
 import { HomeComponent } from './features/home/home.component';
@@ -15,6 +19,7 @@ import { WeekSetupComponent } from './features/week-setup/week-setup.component';
 import { PlanMyWorkComponent } from './features/plan-my-work/plan-my-work.component';
 import { BacklogPickerComponent } from './features/backlog-picker/backlog-picker.component';
 import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.component';
+import { UpdateProgressComponent } from './features/update-progress/update-progress.component';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +27,7 @@ import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.co
   imports: [
     CommonModule,
     ToastComponent,
+    ConfirmModalComponent,
     TeamSetupComponent,
     LoginComponent,
     HomeComponent,
@@ -30,7 +36,8 @@ import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.co
     WeekSetupComponent,
     PlanMyWorkComponent,
     BacklogPickerComponent,
-    ReviewFreezeComponent
+    ReviewFreezeComponent,
+    UpdateProgressComponent
   ],
   template: `
     <div class="app-shell">
@@ -65,6 +72,7 @@ import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.co
           @case ('plan-my-work') { <app-plan-my-work></app-plan-my-work> }
           @case ('backlog-picker') { <app-backlog-picker></app-backlog-picker> }
           @case ('review-freeze') { <app-review-freeze></app-review-freeze> }
+          @case ('update-progress') { <app-update-progress></app-update-progress> }
           @default {
             <div class="coming-soon">
               <h2>🚧 Coming Soon</h2>
@@ -76,6 +84,18 @@ import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.co
       </main>
 
       <app-toast></app-toast>
+      <app-confirm-modal></app-confirm-modal>
+
+      <!-- Footer utility bar (only after login) -->
+      @if (isLoggedIn) {
+      <footer class="footer-bar">
+        <button class="footer-btn" (click)="downloadData()">📥 Download My Data</button>
+        <button class="footer-btn" (click)="fileInput.click()">📤 Load Data from File</button>
+        <button class="footer-btn" (click)="seedData()">🌱 Seed Sample Data</button>
+        <button class="footer-btn footer-btn-danger" (click)="resetApp()">🗑️ Reset App</button>
+        <input #fileInput type="file" accept=".json" (change)="onFileSelected($event)" style="display:none" />
+      </footer>
+      }
     </div>
   `,
   styles: [`
@@ -100,8 +120,23 @@ import { ReviewFreezeComponent } from './features/review-freeze/review-freeze.co
       transition: all 0.2s; font-family: 'Inter', sans-serif;
     }
     .nav-btn:hover { background: #475569; color: #e2e8f0; }
-    .main-content { padding-bottom: 40px; }
+    .main-content { padding-bottom: 70px; }
     .coming-soon { max-width: 400px; margin: 80px auto; text-align: center; font-family: 'Inter', sans-serif; }
+
+    .footer-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+      border-top: 1px solid #334155; z-index: 100;
+    }
+    .footer-btn {
+      background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 6px 14px;
+      border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all 0.2s; white-space: nowrap;
+    }
+    .footer-btn:hover { background: #334155; color: #e2e8f0; border-color: #475569; }
+    .footer-btn-danger { border-color: #ef4444; color: #ef4444; }
+    .footer-btn-danger:hover { background: #ef4444; color: #fff; }
     .coming-soon h2 { font-size: 24px; color: #e2e8f0; margin-bottom: 8px; }
     .coming-soon p { color: #94a3b8; margin-bottom: 24px; }
     .btn-primary {
@@ -131,7 +166,10 @@ export class App implements OnInit, OnDestroy {
   constructor(
     private nav: NavigationService,
     private authService: AuthService,
-    private teamMemberService: TeamMemberService
+    private teamMemberService: TeamMemberService,
+    private dataService: DataService,
+    private toast: ToastService,
+    private confirm: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -218,5 +256,71 @@ export class App implements OnInit, OnDestroy {
   switchUser(): void {
     this.authService.logout();
     this.nav.navigateTo('login');
+  }
+
+  downloadData(): void {
+    this.dataService.exportData();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        this.dataService.importData(data).subscribe({
+          next: () => {
+            this.toast.success('Data restored from file!');
+            this.authService.logout();
+            window.location.reload();
+          },
+          error: () => this.toast.error('Failed to import data.')
+        });
+      } catch {
+        this.toast.error('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
+
+  async seedData(): Promise<void> {
+    const ok = await this.confirm.confirm({
+      title: '🌱 Seed Sample Data',
+      message: 'This will add sample team members, backlog items, and a planning cycle. Existing data will not be erased.',
+      confirmText: 'Yes, Load Sample Data',
+      cancelText: 'No, Go Back',
+      danger: false
+    });
+    if (!ok) return;
+    this.dataService.seedData().subscribe({
+      next: () => {
+        this.toast.success('Sample data loaded!');
+        this.authService.logout();
+        window.location.reload();
+      },
+      error: () => this.toast.error('Failed to load sample data.')
+    });
+  }
+
+  async resetApp(): Promise<void> {
+    const ok = await this.confirm.confirm({
+      title: '🗑️ Reset App',
+      message: 'This will permanently DELETE all data including team members, backlog, and plans. This action cannot be undone.',
+      confirmText: 'Yes, Delete Everything',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
+    this.dataService.resetData().subscribe({
+      next: () => {
+        this.toast.success('All data has been reset.');
+        this.authService.logout();
+        window.location.reload();
+      },
+      error: () => this.toast.error('Failed to reset app.')
+    });
   }
 }

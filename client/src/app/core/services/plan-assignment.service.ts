@@ -61,4 +61,9 @@ export class PlanAssignmentService {
     delete(id: string): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    /** Update progress (hours done + status) on an assignment. */
+    updateProgress(id: string, data: { hoursCompleted: number; status: string; notes?: string }): Observable<PlanAssignment> {
+        return this.http.put<PlanAssignment>(`${this.apiUrl}/${id}/progress`, data);
+    }
 }

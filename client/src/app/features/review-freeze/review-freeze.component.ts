@@ -5,6 +5,7 @@ import { PlanAssignmentService, PlanAssignment } from '../../core/services/plan-
 import { NavigationService } from '../../core/services/navigation.service';
 import { ToastService } from '../../core/services/toast.service';
 import { WeeklyPlan, WeeklyPlanMember } from '../../core/models/weekly-plan.model';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { BacklogCategory } from '../../core/enums/enums';
 
 @Component({
@@ -246,7 +247,8 @@ export class ReviewFreezeComponent implements OnInit {
     private weeklyPlanService: WeeklyPlanService,
     private planAssignmentService: PlanAssignmentService,
     public nav: NavigationService,
-    private toast: ToastService
+    private toast: ToastService,
+    private confirmService: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -321,9 +323,16 @@ export class ReviewFreezeComponent implements OnInit {
     });
   }
 
-  cancelPlanning(): void {
+  async cancelPlanning(): Promise<void> {
     if (!this.currentPlan) return;
-    if (!confirm('Are you sure you want to cancel this week\u2019s planning? This will erase all plans.')) return;
+    const ok = await this.confirmService.confirm({
+      title: '🗑️ Cancel Planning',
+      message: 'Are you sure you want to cancel this week\u2019s planning? This will erase all plans and cannot be undone.',
+      confirmText: 'Yes, Cancel Planning',
+      cancelText: 'Keep Planning',
+      danger: true
+    });
+    if (!ok) return;
 
     this.weeklyPlanService.cancel(this.currentPlan.id).subscribe({
       next: () => {
