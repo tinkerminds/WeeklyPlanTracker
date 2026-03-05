@@ -93,7 +93,7 @@ import { BacklogCategory } from '../../core/enums/enums';
     </div>
   `,
   styles: [`
-    .picker-container { max-width: 900px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+    .picker-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .btn-back {
       display: inline-block; background: var(--bg-card-hover); color: var(--text-secondary); border: none;
       padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;

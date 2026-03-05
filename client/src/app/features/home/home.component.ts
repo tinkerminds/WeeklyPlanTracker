@@ -54,25 +54,26 @@ interface MenuCard {
   `,
   styles: [`
     .home-container {
-      max-width: 640px;
+      max-width: 960px;
       margin: 40px auto;
-      padding: 0 20px;
+      padding: 0 24px;
       font-family: 'Inter', sans-serif;
     }
     .greeting-section {
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .greeting-section h1 {
-      font-size: 24px;
-      color: var(--text-primary);
-      margin-bottom: 6px;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
     }
     .role-tag {
       display: inline-block;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
     }
     .role-lead {
       background: rgba(245, 158, 11, 0.2);
@@ -86,17 +87,18 @@ interface MenuCard {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 16px;
+      padding: 14px 18px;
       background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.25);
       border-radius: 10px;
       color: var(--text-info);
-      font-size: 14px;
-      margin-bottom: 28px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 32px;
     }
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: var(--color-primary);
       flex-shrink: 0;
@@ -104,55 +106,59 @@ interface MenuCard {
     .card-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 16px;
     }
     .menu-card {
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
       width: 100%;
-      padding: 18px 20px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--bg-card-hover);
-      border-radius: 12px;
+      padding: 22px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
       text-align: left;
       color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
     }
     .menu-card:hover {
-      border-color: var(--border-hover);
+      border-color: var(--color-primary);
       background: var(--bg-card-active);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
     }
     .card-danger {
       border-color: rgba(239, 68, 68, 0.3);
     }
     .card-danger:hover {
       border-color: var(--color-danger);
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(239, 68, 68, 0.08);
     }
     .card-danger .card-title {
       color: var(--color-danger);
     }
     .card-icon {
-      font-size: 22px;
+      font-size: 28px;
       flex-shrink: 0;
     }
     .card-text {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
     }
     .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
     }
     .card-subtitle {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
+      line-height: 1.4;
     }
     .card-arrow {
       font-size: 22px;

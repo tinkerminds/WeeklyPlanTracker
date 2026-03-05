@@ -116,20 +116,19 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
     }
     .navbar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 24px; background: var(--bg-navbar); backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
-      transition: background 0.3s, border-color 0.3s;
+      padding: 12px 24px; background: #2664eb;
+      border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100;
     }
     .navbar-brand {
       font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
-      color: var(--text-primary); cursor: pointer; transition: color 0.2s;
+      color: #fff; cursor: pointer; transition: opacity 0.2s;
     }
-    .navbar-brand:hover { color: var(--color-primary); }
+    .navbar-brand:hover { opacity: 0.85; }
     .navbar-right { display: flex; align-items: center; gap: 16px; }
     .nav-user { display: flex; align-items: center; gap: 8px; }
     .nav-user-name {
-      font-size: 13px; font-weight: 600; color: var(--text-primary);
-      padding: 4px 10px; border: 2px solid var(--color-primary); border-radius: 20px;
+      font-size: 13px; font-weight: 600; color: #fff;
+      padding: 4px 10px; border: 2px solid rgba(255,255,255,0.5); border-radius: 20px;
     }
     .nav-role-badge {
       font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
@@ -138,11 +137,11 @@ import { UpdateProgressComponent } from './features/update-progress/update-progr
     .nav-role-badge.lead { background: var(--color-lead); color: #000; }
     .navbar-actions { display: flex; gap: 8px; }
     .nav-btn {
-      background: var(--bg-card-hover); color: var(--text-secondary); border: none; padding: 8px 14px;
+      background: rgba(255,255,255,0.15); color: #fff; border: none; padding: 8px 14px;
       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
       transition: all 0.2s; font-family: 'Inter', sans-serif;
     }
-    .nav-btn:hover { background: var(--border-hover); color: var(--text-primary); }
+    .nav-btn:hover { background: rgba(255,255,255,0.25); }
     .theme-btn { min-width: 90px; }
     .main-content { padding-bottom: 70px; }
     .coming-soon { max-width: 400px; margin: 80px auto; text-align: center; font-family: 'Inter', sans-serif; }

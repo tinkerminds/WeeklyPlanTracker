@@ -116,7 +116,7 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
   `,
   styles: [`
     .setup-container {
-      max-width: 640px;
+      max-width: 800px;
       margin: 32px auto;
       padding: 0 20px 60px;
       font-family: 'Inter', sans-serif;

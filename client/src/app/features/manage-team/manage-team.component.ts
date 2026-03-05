@@ -45,7 +45,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     </div>
   `,
     styles: [`
-    .manage-container { max-width: 600px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+    .manage-container { max-width: 800px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .btn-back { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
     .btn-back:hover { color: var(--text-secondary); }
     h2 { font-size: 22px; color: var(--text-primary); margin-bottom: 20px; }
