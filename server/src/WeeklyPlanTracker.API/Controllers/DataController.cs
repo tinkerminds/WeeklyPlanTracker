@@ -27,15 +27,26 @@ namespace WeeklyPlanTracker.API.Controllers
         [HttpGet("export")]
         public async Task<IActionResult> Export()
         {
-            var data = new
-            {
-                TeamMembers = await _db.TeamMembers.ToListAsync(),
-                BacklogItems = await _db.BacklogItems.ToListAsync(),
-                WeeklyPlans = await _db.WeeklyPlans.Include(w => w.WeeklyPlanMembers).ToListAsync(),
-                PlanAssignments = await _db.PlanAssignments.ToListAsync(),
-                ProgressUpdates = await _db.ProgressUpdates.ToListAsync()
-            };
+            var teamMembers = await _db.TeamMembers.ToListAsync();
+            var backlogItems = await _db.BacklogItems.ToListAsync();
+            var weeklyPlans = await _db.WeeklyPlans
+                .Include(w => w.WeeklyPlanMembers)
+                .Select(w => new {
+                    w.Id, w.PlanningDate, w.State,
+                    w.ClientFocusedPercent, w.TechDebtPercent, w.RAndDPercent,
+                    w.CreatedAt,
+                    WeeklyPlanMembers = w.WeeklyPlanMembers.Select(m => new {
+                        m.WeeklyPlanId, m.TeamMemberId, m.IsPlanningDone
+                    })
+                }).ToListAsync();
+            var planAssignments = await _db.PlanAssignments
+                .Select(a => new {
+                    a.Id, a.WeeklyPlanId, a.TeamMemberId, a.BacklogItemId,
+                    a.CommittedHours, a.HoursCompleted, a.Status, a.CreatedAt
+                }).ToListAsync();
+            var progressUpdates = await _db.ProgressUpdates.ToListAsync();
 
+            var data = new { TeamMembers = teamMembers, BacklogItems = backlogItems, WeeklyPlans = weeklyPlans, PlanAssignments = planAssignments, ProgressUpdates = progressUpdates };
             return Ok(data);
         }
 
