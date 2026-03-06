@@ -5,13 +5,14 @@ import { Subscription } from 'rxjs';
 import { BacklogService, BacklogItem } from '../../core/services/backlog.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { BacklogCategory } from '../../core/enums/enums';
 
 @Component({
-    selector: 'app-manage-backlog',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-manage-backlog',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div class="backlog-container">
       <button class="btn-back" (click)="nav.navigateTo('home')">← Home</button>
 
@@ -58,7 +59,9 @@ import { BacklogCategory } from '../../core/enums/enums';
           <div class="right-filters">
             <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" class="form-control small-select">
               <option value="available">Available Only</option>
-              <option value="all">All</option>
+              <option value="all">Show All</option>
+              <option value="completed">Completed</option>
+              <option value="archived">Archived</option>
             </select>
             <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search by title" class="form-control search-input" autocomplete="off" />
           </div>
@@ -91,7 +94,7 @@ import { BacklogCategory } from '../../core/enums/enums';
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .backlog-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .btn-back { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
     .btn-back:hover { color: var(--text-secondary); }
@@ -147,116 +150,128 @@ import { BacklogCategory } from '../../core/enums/enums';
   `]
 })
 export class ManageBacklogComponent implements OnInit, OnDestroy {
-    BacklogCategory = BacklogCategory;
-    allItems: BacklogItem[] = [];
-    filteredItems: BacklogItem[] = [];
-    filterClient = false;
-    filterTech = false;
-    filterRnD = false;
-    statusFilter = 'available';
-    searchQuery = '';
-    showForm = false;
-    editingItem: BacklogItem | null = null;
-    formData = this.emptyForm();
-    private sub!: Subscription;
+  BacklogCategory = BacklogCategory;
+  allItems: BacklogItem[] = [];
+  filteredItems: BacklogItem[] = [];
+  filterClient = false;
+  filterTech = false;
+  filterRnD = false;
+  statusFilter = 'available';
+  searchQuery = '';
+  showForm = false;
+  editingItem: BacklogItem | null = null;
+  formData = this.emptyForm();
+  private sub!: Subscription;
 
-    constructor(
-        private backlogService: BacklogService,
-        private toastService: ToastService,
-        public nav: NavigationService
-    ) { }
+  constructor(
+    private backlogService: BacklogService,
+    private toastService: ToastService,
+    public nav: NavigationService,
+    private confirmService: ConfirmService
+  ) { }
 
-    ngOnInit(): void {
-        this.backlogService.refresh();
-        this.sub = this.backlogService.items$.subscribe(items => {
-            this.allItems = items;
-            this.applyFilters();
-        });
+  ngOnInit(): void {
+    this.backlogService.refresh();
+    this.sub = this.backlogService.items$.subscribe(items => {
+      this.allItems = items;
+      this.applyFilters();
+    });
+  }
+
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+
+  toggleFilter(type: string): void {
+    if (type === 'client') this.filterClient = !this.filterClient;
+    if (type === 'tech') this.filterTech = !this.filterTech;
+    if (type === 'rnd') this.filterRnD = !this.filterRnD;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    let items = [...this.allItems];
+    if (this.statusFilter === 'available') items = items.filter(i => !i.isArchived);
+    else if (this.statusFilter === 'archived') items = items.filter(i => i.isArchived);
+    else if (this.statusFilter === 'completed') items = items.filter(i => !i.isArchived);
+    const anyCategory = this.filterClient || this.filterTech || this.filterRnD;
+    if (anyCategory) {
+      items = items.filter(i => {
+        if (this.filterClient && i.category === BacklogCategory.ClientFocused) return true;
+        if (this.filterTech && i.category === BacklogCategory.TechDebt) return true;
+        if (this.filterRnD && i.category === BacklogCategory.RAndD) return true;
+        return false;
+      });
     }
-
-    ngOnDestroy(): void { this.sub?.unsubscribe(); }
-
-    toggleFilter(type: string): void {
-        if (type === 'client') this.filterClient = !this.filterClient;
-        if (type === 'tech') this.filterTech = !this.filterTech;
-        if (type === 'rnd') this.filterRnD = !this.filterRnD;
-        this.applyFilters();
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      items = items.filter(i => i.title.toLowerCase().includes(q));
     }
+    this.filteredItems = items;
+  }
 
-    applyFilters(): void {
-        let items = [...this.allItems];
-        if (this.statusFilter === 'available') items = items.filter(i => !i.isArchived);
-        const anyCategory = this.filterClient || this.filterTech || this.filterRnD;
-        if (anyCategory) {
-            items = items.filter(i => {
-                if (this.filterClient && i.category === BacklogCategory.ClientFocused) return true;
-                if (this.filterTech && i.category === BacklogCategory.TechDebt) return true;
-                if (this.filterRnD && i.category === BacklogCategory.RAndD) return true;
-                return false;
-            });
-        }
-        if (this.searchQuery.trim()) {
-            const q = this.searchQuery.toLowerCase();
-            items = items.filter(i => i.title.toLowerCase().includes(q));
-        }
-        this.filteredItems = items;
+  getCategoryLabel(cat: BacklogCategory): string {
+    switch (cat) {
+      case BacklogCategory.ClientFocused: return 'Client Focused';
+      case BacklogCategory.TechDebt: return 'Tech Debt';
+      case BacklogCategory.RAndD: return 'R&D';
     }
+  }
 
-    getCategoryLabel(cat: BacklogCategory): string {
-        switch (cat) {
-            case BacklogCategory.ClientFocused: return 'Client Focused';
-            case BacklogCategory.TechDebt: return 'Tech Debt';
-            case BacklogCategory.RAndD: return 'R&D';
-        }
+  openAddForm(): void { this.formData = this.emptyForm(); this.editingItem = null; this.showForm = true; }
+
+  openEditForm(item: BacklogItem): void {
+    this.editingItem = item;
+    this.formData = { title: item.title, description: item.description || '', category: item.category, estimatedHours: item.estimatedHours };
+    this.showForm = true;
+  }
+
+  cancelForm(): void { this.showForm = false; this.editingItem = null; }
+
+  saveItem(): void {
+    if (this.editingItem) {
+      this.backlogService.update(this.editingItem.id, this.formData).subscribe({
+        next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; this.editingItem = null; },
+        error: () => this.toastService.error('Failed to save item.')
+      });
+    } else {
+      this.backlogService.create(this.formData).subscribe({
+        next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; },
+        error: () => this.toastService.error('Failed to create item.')
+      });
     }
+  }
 
-    openAddForm(): void { this.formData = this.emptyForm(); this.editingItem = null; this.showForm = true; }
+  deleteItem(): void {
+    if (!this.editingItem) return;
+    this.backlogService.delete(this.editingItem.id).subscribe({
+      next: () => { this.toastService.success('Backlog item deleted.'); this.showForm = false; this.editingItem = null; },
+      error: () => this.toastService.error('Failed to delete item.')
+    });
+  }
 
-    openEditForm(item: BacklogItem): void {
-        this.editingItem = item;
-        this.formData = { title: item.title, description: item.description || '', category: item.category, estimatedHours: item.estimatedHours };
-        this.showForm = true;
-    }
+  async archiveItem(item: BacklogItem): Promise<void> {
+    const ok = await this.confirmService.confirm({
+      title: '📦 Archive Item',
+      message: `Are you sure you want to archive "${item.title}"? It will no longer appear in available items.`,
+      confirmText: 'Yes, Archive',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
 
-    cancelForm(): void { this.showForm = false; this.editingItem = null; }
+    this.backlogService.archive(item.id).subscribe({
+      next: () => this.toastService.success('Backlog item archived.'),
+      error: () => this.toastService.error('Failed to archive item.')
+    });
+  }
 
-    saveItem(): void {
-        if (this.editingItem) {
-            this.backlogService.update(this.editingItem.id, this.formData).subscribe({
-                next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; this.editingItem = null; },
-                error: () => this.toastService.error('Failed to save item.')
-            });
-        } else {
-            this.backlogService.create(this.formData).subscribe({
-                next: () => { this.toastService.success('Backlog item saved!'); this.showForm = false; },
-                error: () => this.toastService.error('Failed to create item.')
-            });
-        }
-    }
+  unarchiveItem(item: BacklogItem): void {
+    this.backlogService.unarchive(item.id).subscribe({
+      next: () => this.toastService.success('Backlog item restored.'),
+      error: () => this.toastService.error('Failed to restore item.')
+    });
+  }
 
-    deleteItem(): void {
-        if (!this.editingItem) return;
-        this.backlogService.delete(this.editingItem.id).subscribe({
-            next: () => { this.toastService.success('Backlog item deleted.'); this.showForm = false; this.editingItem = null; },
-            error: () => this.toastService.error('Failed to delete item.')
-        });
-    }
-
-    archiveItem(item: BacklogItem): void {
-        this.backlogService.archive(item.id).subscribe({
-            next: () => this.toastService.success('Backlog item archived.'),
-            error: () => this.toastService.error('Failed to archive item.')
-        });
-    }
-
-    unarchiveItem(item: BacklogItem): void {
-        this.backlogService.unarchive(item.id).subscribe({
-            next: () => this.toastService.success('Backlog item restored.'),
-            error: () => this.toastService.error('Failed to restore item.')
-        });
-    }
-
-    private emptyForm() {
-        return { title: '', description: '', category: BacklogCategory.ClientFocused, estimatedHours: 0 };
-    }
+  private emptyForm() {
+    return { title: '', description: '', category: BacklogCategory.ClientFocused, estimatedHours: 0 };
+  }
 }

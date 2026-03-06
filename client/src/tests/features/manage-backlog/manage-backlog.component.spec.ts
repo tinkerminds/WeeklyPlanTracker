@@ -5,6 +5,7 @@ import { ManageBacklogComponent } from '../../../app/features/manage-backlog/man
 import { BacklogService } from '../../../app/core/services/backlog.service';
 import { ToastService } from '../../../app/core/services/toast.service';
 import { NavigationService } from '../../../app/core/services/navigation.service';
+import { ConfirmService } from '../../../app/core/services/confirm.service';
 import { BacklogCategory } from '../../../app/core/enums/enums';
 import { BehaviorSubject, of } from 'rxjs';
 
@@ -15,6 +16,7 @@ describe('ManageBacklogComponent', () => {
     const mockBacklog = { refresh: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), archive: vi.fn(), unarchive: vi.fn(), items$: null as any };
     const mockToast = { success: vi.fn(), error: vi.fn() };
     const mockNav = { navigateTo: vi.fn() };
+    const mockConfirm = { confirm: vi.fn() };
 
     const mockItems = [
         { id: '1', title: 'Task A', description: '', category: BacklogCategory.ClientFocused, estimatedHours: 10, isArchived: false, createdAt: '' },
@@ -30,7 +32,8 @@ describe('ManageBacklogComponent', () => {
             providers: [
                 { provide: BacklogService, useValue: mockBacklog },
                 { provide: ToastService, useValue: mockToast },
-                { provide: NavigationService, useValue: mockNav }
+                { provide: NavigationService, useValue: mockNav },
+                { provide: ConfirmService, useValue: mockConfirm }
             ]
         }).compileComponents();
 
@@ -88,10 +91,20 @@ describe('ManageBacklogComponent', () => {
         expect(mockBacklog.create).toHaveBeenCalled();
     });
 
-    it('should archive item', () => {
+    it('should archive item after confirmation', async () => {
+        mockConfirm.confirm.mockResolvedValue(true);
         mockBacklog.archive.mockReturnValue(of(void 0 as any));
-        component.archiveItem(mockItems[0] as any);
+        await component.archiveItem(mockItems[0] as any);
+        expect(mockConfirm.confirm).toHaveBeenCalled();
         expect(mockBacklog.archive).toHaveBeenCalledWith('1');
+    });
+
+    it('should not archive item when confirmation is cancelled', async () => {
+        mockConfirm.confirm.mockResolvedValue(false);
+        mockBacklog.archive.mockReturnValue(of(void 0 as any));
+        await component.archiveItem(mockItems[0] as any);
+        expect(mockConfirm.confirm).toHaveBeenCalled();
+        expect(mockBacklog.archive).not.toHaveBeenCalled();
     });
 
     it('should unarchive item', () => {
