@@ -139,12 +139,6 @@ WeeklyPlanTracker/
 - role-based menus (lead sees different options than members)
 - 30 hours per member budget with category budget tracking
 
-## Future Enhancements
-
-- Done: 100% test coverage achieved across 169 frontend tests and full backend test suites!
-- integration tests (end-to-end API testing)
-- e2e tests (optional browser automation)
-
 ## CI/CD Pipeline & Deployment
 
 Pushes to the `main` branch trigger automated GitHub Actions workflows. These compile the application, execute the test suites, and deploy directly to Azure App Services. Database schema migrations execute seamlessly upon application startup.
