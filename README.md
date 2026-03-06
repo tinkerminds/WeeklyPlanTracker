@@ -141,7 +141,7 @@ WeeklyPlanTracker/
 
 ## Future Enhancements
 
-- ~~unit tests (xunit for backend, vitest for frontend)~~ **(Done: 100% test coverage achieved across 169 frontend tests and full backend test suites!)**
+- Done: 100% test coverage achieved across 169 frontend tests and full backend test suites!
 - integration tests (end-to-end API testing)
 - e2e tests (optional browser automation)
 
