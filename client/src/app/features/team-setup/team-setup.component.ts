@@ -6,7 +6,7 @@ import { MemberRole } from '../../core/enums/enums';
 import { TeamMemberService } from '../../core/services/team-member.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NavigationService } from '../../core/services/navigation.service';
-import { AuthService } from '../../core/services/auth.service';
+
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
 @Component({
@@ -17,7 +17,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     <div class="setup-container">
       <div class="setup-header">
         <h1>👋 Welcome! Let's set up your team.</h1>
-        <p class="subtitle">Add the people on your team. Pick one person as the Team Lead.</p>
+        <p class="subtitle">Add people from your team. Pick one person as the Team Lead.</p>
       </div>
 
       <div class="add-member-form">
@@ -53,7 +53,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
               } @else {
                 <span class="lead-check">Lead ✓</span>
               }
-              <button class="btn btn-remove" (click)="removeMember(member)" title="Remove member">✕</button>
+              <button class="btn btn-remove" (click)="removeMember(member)">Remove</button>
             </div>
           </div>
         }
@@ -67,45 +67,71 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     </div>
   `,
   styles: [`
-    .setup-container { max-width: 600px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    .setup-header { text-align: center; margin-bottom: 32px; }
-    .setup-header h1 { font-size: 28px; color: var(--text-primary); margin-bottom: 8px; }
-    .subtitle { color: var(--text-secondary); font-size: 16px; }
+    .setup-container {
+      max-width: 600px; margin: 40px auto; padding: 0 24px;
+      font-family: 'Inter', sans-serif;
+    }
+    .setup-header { text-align: center; margin-bottom: 36px; }
+    .setup-header h1 { font-size: 28px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
+    .subtitle { color: var(--text-secondary); font-size: 17px; }
+
     .add-member-form { display: flex; gap: 12px; margin-bottom: 24px; }
     .name-input {
-      flex: 1; padding: 12px 16px; border: 2px solid var(--bg-card-hover); border-radius: 8px;
-      background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s;
+      flex: 1; padding: 14px 18px;
+      border: 2px solid var(--border-color); border-radius: 14px;
+      background: var(--bg-card); color: var(--text-primary); font-size: 15px;
+      outline: none; transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
     }
-    .name-input:focus { border-color: var(--color-primary); }
+    .name-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
     .name-input::placeholder { color: var(--text-muted); }
-    .btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+
+    .btn { padding: 12px 20px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--color-primary); color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
-    .btn-outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+      background: var(--color-primary); color: #fff;
+      box-shadow: var(--shadow-sm); border-radius: 14px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+    .btn-outline {
+      background: transparent; color: var(--color-primary); border: 1.5px solid var(--color-primary);
+      padding: 8px 16px; font-size: 13px; border-radius: 10px;
+    }
     .btn-outline:hover { background: rgba(59, 130, 246, 0.1); }
+
     .btn-remove {
-      background: transparent; color: var(--text-muted); border: 1px solid var(--border-hover);
-      width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 14px;
-      display: flex; align-items: center; justify-content: center;
+      background: transparent; color: var(--color-danger); border: 1.5px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 14px; border-radius: 10px; font-size: 13px;
     }
-    .btn-remove:hover { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); border-color: var(--color-danger); }
+    .btn-remove:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--color-danger); }
+
     .btn-done {
-      display: block; width: 100%; margin-top: 32px; padding: 14px;
-      background: linear-gradient(135deg, var(--color-warning), var(--color-warning)); color: #fff; font-size: 16px;
+      display: block; width: 100%; margin-top: 32px; padding: 16px;
+      background: var(--color-primary); color: #fff; font-size: 16px; font-weight: 700;
+      border-radius: 14px; box-shadow: var(--shadow-sm);
     }
-    .btn-done:hover:not(:disabled) { background: linear-gradient(135deg, var(--color-warning), var(--color-warning)); }
+    .btn-done:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25); }
+
     .member-list { display: flex; flex-direction: column; gap: 12px; }
-    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); background: var(--bg-secondary); border-radius: 12px; border: 2px dashed var(--bg-card-hover); }
-    .member-card {
-      display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
-      background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--bg-card-hover); transition: all 0.3s; animation: fadeIn 0.3s ease-out;
+    .empty-state {
+      text-align: center; padding: 48px 24px; color: var(--text-muted);
+      background: var(--bg-secondary); border-radius: 16px;
+      border: 2px dashed var(--border-color);
     }
-    .member-card:hover { border-color: var(--border-hover); }
+    .member-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px;
+      background: var(--bg-card); border-radius: 14px;
+      border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: fadeIn 0.3s ease-out;
+    }
+    .member-card:hover { border-color: var(--color-primary); background: var(--bg-card-active); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.12); transform: translateY(-2px); }
     .member-info { display: flex; align-items: center; gap: 12px; }
-    .member-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .member-name { font-size: 17px; font-weight: 700; color: var(--text-heading); }
     .member-actions { display: flex; align-items: center; gap: 8px; }
-    .lead-check { color: var(--color-warning); font-weight: 600; font-size: 14px; }
+    .lead-check { color: var(--color-warning); font-weight: 700; font-size: 14px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
@@ -119,8 +145,7 @@ export class TeamSetupComponent {
   constructor(
     private teamMemberService: TeamMemberService,
     private toastService: ToastService,
-    private nav: NavigationService,
-    private authService: AuthService
+    private nav: NavigationService
   ) { }
 
   addMember(): void {
@@ -166,15 +191,7 @@ export class TeamSetupComponent {
     try {
       await this.teamMemberService.bulkCreate(this.members);
       this.toastService.success('Team saved!');
-
-      // Fetch saved members from API to get correct IDs, then auto-login as Lead
-      const { firstValueFrom } = await import('rxjs');
-      const savedMembers = await firstValueFrom(this.teamMemberService.getAll());
-      const lead = savedMembers.find(m => m.role === 'Lead') || savedMembers[0];
-      if (lead) {
-        this.authService.login(lead);
-      }
-      this.nav.navigateTo('home');
+      this.nav.navigateTo('login');
     } catch (err) {
       this.toastService.error('Failed to save team. Please try again.');
     } finally {
