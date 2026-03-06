@@ -75,6 +75,6 @@ describe('LoginComponent', () => {
         membersSubject.next([]);
         fixture.detectChanges();
         const compiled = fixture.nativeElement;
-        expect(compiled.querySelector('.empty-state')).toBeTruthy();
+        expect(compiled.querySelector('.empty-state-styled')).toBeTruthy();
     });
 });

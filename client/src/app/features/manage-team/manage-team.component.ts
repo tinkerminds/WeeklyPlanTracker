@@ -7,13 +7,14 @@ import { MemberRole } from '../../core/enums/enums';
 import { TeamMemberService } from '../../core/services/team-member.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
 @Component({
-    selector: 'app-manage-team',
-    standalone: true,
-    imports: [CommonModule, FormsModule, RoleBadgeComponent],
-    template: `
+  selector: 'app-manage-team',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
+  template: `
     <div class="manage-container">
       <button class="btn-back" (click)="nav.navigateTo('home')">← Home</button>
       <h2>Manage Team Members</h2>
@@ -26,7 +27,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
 
       <div class="member-list">
         @for (member of members; track member.id) {
-          <div class="member-card">
+          <div class="member-card" [style.animationDelay]="(0.06 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
             <div class="member-info">
               <span class="member-name">{{ member.name }}</span>
               <app-role-badge [role]="member.role"></app-role-badge>
@@ -44,7 +45,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .manage-container { max-width: 800px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .btn-back { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
     .btn-back:hover { color: var(--text-secondary); }
@@ -75,44 +76,54 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
   `]
 })
 export class ManageTeamComponent implements OnInit, OnDestroy {
-    members: TeamMember[] = [];
-    newMemberName = '';
-    MemberRole = MemberRole;
-    private sub!: Subscription;
+  members: TeamMember[] = [];
+  newMemberName = '';
+  MemberRole = MemberRole;
+  private sub!: Subscription;
 
-    constructor(
-        private teamMemberService: TeamMemberService,
-        private toastService: ToastService,
-        public nav: NavigationService
-    ) { }
+  constructor(
+    private teamMemberService: TeamMemberService,
+    private toastService: ToastService,
+    public nav: NavigationService,
+    private confirmService: ConfirmService
+  ) { }
 
-    ngOnInit(): void {
-        this.teamMemberService.refresh();
-        this.sub = this.teamMemberService.members$.subscribe(members => this.members = members);
-    }
+  ngOnInit(): void {
+    this.teamMemberService.refresh();
+    this.sub = this.teamMemberService.members$.subscribe(members => this.members = members);
+  }
 
-    ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
-    addMember(): void {
-        const name = this.newMemberName.trim();
-        if (!name) return;
-        this.teamMemberService.create(name).subscribe({
-            next: () => { this.newMemberName = ''; this.toastService.success('Member added!'); },
-            error: () => this.toastService.error('Failed to add member.')
-        });
-    }
+  addMember(): void {
+    const name = this.newMemberName.trim();
+    if (!name) return;
+    this.teamMemberService.create(name).subscribe({
+      next: () => { this.newMemberName = ''; this.toastService.success('Member added!'); },
+      error: () => this.toastService.error('Failed to add member.')
+    });
+  }
 
-    makeLead(member: TeamMember): void {
-        this.teamMemberService.makeLead(member.id).subscribe({
-            next: () => this.toastService.success(`${member.name} is now the Team Lead!`),
-            error: () => this.toastService.error('Failed to update role.')
-        });
-    }
+  makeLead(member: TeamMember): void {
+    this.teamMemberService.makeLead(member.id).subscribe({
+      next: () => this.toastService.success(`${member.name} is now the Team Lead!`),
+      error: () => this.toastService.error('Failed to update role.')
+    });
+  }
 
-    removeMember(member: TeamMember): void {
-        this.teamMemberService.remove(member.id).subscribe({
-            next: () => this.toastService.success(`${member.name} removed.`),
-            error: (err) => this.toastService.error(err.error || 'Cannot remove this member.')
-        });
-    }
+  async removeMember(member: TeamMember): Promise<void> {
+    const ok = await this.confirmService.confirm({
+      title: '👤 Remove Member',
+      message: `Are you sure you want to remove "${member.name}" from the team? This action cannot be undone.`,
+      confirmText: 'Yes, Remove',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
+
+    this.teamMemberService.remove(member.id).subscribe({
+      next: () => this.toastService.success(`${member.name} removed.`),
+      error: (err) => this.toastService.error(err.error || 'Cannot remove this member.')
+    });
+  }
 }

@@ -5,30 +5,30 @@ import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
 import { PlanAssignmentService, PlanAssignment } from '../../core/services/plan-assignment.service';
 
 interface CategoryProgress {
-    name: string;
-    key: string;
-    committed: number;
-    done: number;
-    percent: number;
+  name: string;
+  key: string;
+  committed: number;
+  done: number;
+  percent: number;
 }
 
 interface MemberProgress {
-    memberId: string;
-    memberName: string;
-    committed: number;
-    done: number;
-    percent: number;
-    tasksDone: number;
-    tasksBlocked: number;
-    assignments: PlanAssignment[];
-    expanded: boolean;
+  memberId: string;
+  memberName: string;
+  committed: number;
+  done: number;
+  percent: number;
+  tasksDone: number;
+  tasksBlocked: number;
+  assignments: PlanAssignment[];
+  expanded: boolean;
 }
 
 @Component({
-    selector: 'app-team-progress',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-team-progress',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="progress-page">
       <button class="back-btn" (click)="nav.navigateTo('home')">← Home</button>
       <h1>📊 Team Progress</h1>
@@ -41,10 +41,15 @@ interface MemberProgress {
       } @else {
         <!-- Overall Summary Cards -->
         <div class="summary-row">
-          <div class="summary-card">
-            <div class="summary-value">{{ overallPercent }}%</div>
-            <div class="summary-label">Overall Progress</div>
-            <div class="progress-bar-track"><div class="progress-bar-fill" [style.width.%]="overallPercent"></div></div>
+          <div class="summary-card ring-card">
+            <svg class="progress-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle class="ring-fill" cx="60" cy="60" r="52"
+                [style.strokeDasharray]="2 * 3.14159 * 52"
+                [style.strokeDashoffset]="2 * 3.14159 * 52 * (1 - overallPercent / 100)" />
+              <text x="60" y="56" text-anchor="middle" class="ring-text">{{ overallPercent }}%</text>
+              <text x="60" y="72" text-anchor="middle" class="ring-label">Progress</text>
+            </svg>
           </div>
           <div class="summary-card">
             <div class="summary-value">{{ tasksDone }} / {{ totalTasks }}</div>
@@ -74,7 +79,7 @@ interface MemberProgress {
         <h2>By Member</h2>
         <div class="member-list">
           @for (member of members; track member.memberId) {
-            <div class="member-card">
+            <div class="member-card" [style.animationDelay]="(0.08 * $index) + 's'" style="animation: staggerFadeIn 0.35s ease-out both;">
               <div class="member-header" (click)="member.expanded = !member.expanded">
                 <div class="member-info">
                   <span class="member-name">{{ member.memberName }}</span>
@@ -90,10 +95,11 @@ interface MemberProgress {
               @if (member.expanded) {
                 <div class="member-tasks">
                   @for (a of member.assignments; track a.id) {
-                    <div class="task-row">
+                    <div class="task-row" [style.animationDelay]="(0.05 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
                       <span class="task-badge" [class]="'cat-' + getCatKey(a.backlogItemCategory)">{{ getCatLabel(a.backlogItemCategory) }}</span>
                       <span class="task-title">{{ a.backlogItemTitle }}</span>
                       <span class="task-hours">{{ a.hoursCompleted }}h / {{ a.committedHours }}h</span>
+                      <span class="status-dot" [class]="'dot-' + a.status.toLowerCase()"></span>
                       <span class="task-status" [class]="'status-' + a.status.toLowerCase()">{{ a.status }}</span>
                     </div>
                   }
@@ -105,7 +111,7 @@ interface MemberProgress {
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .progress-page {
       max-width: 960px; margin: 20px auto; padding: 0 24px; font-family: 'Inter', sans-serif;
     }
@@ -137,11 +143,32 @@ interface MemberProgress {
       width: 100%; height: 6px; background: var(--bg-card-hover); border-radius: 3px; margin-top: 8px; overflow: hidden;
     }
     .progress-bar-fill {
-      height: 100%; border-radius: 5px; background: var(--color-primary); transition: width 0.6s ease;
+      height: 100%; border-radius: 5px; background: var(--color-primary); transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .fill-client { background: var(--color-primary); }
-    .fill-tech { background: var(--color-warning); }
-    .fill-rnd { background: var(--color-success); }
+    .fill-client { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .fill-tech { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .fill-rnd { background: linear-gradient(90deg, #22c55e, #4ade80); }
+
+    /* SVG Progress Ring */
+    .ring-card { display: flex; align-items: center; justify-content: center; }
+    .progress-ring { width: 120px; height: 120px; }
+    .ring-bg { fill: none; stroke: var(--bg-card-hover); stroke-width: 8; }
+    .ring-fill {
+      fill: none; stroke: var(--color-primary); stroke-width: 8;
+      stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .ring-text { fill: var(--text-heading); font-size: 22px; font-weight: 800; font-family: 'Inter', sans-serif; }
+    .ring-label { fill: var(--text-secondary); font-size: 11px; font-weight: 600; font-family: 'Inter', sans-serif; }
+
+    /* Status Dots */
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-notstarted { background: var(--text-muted); }
+    .dot-inprogress { background: var(--color-primary); }
+    .dot-done { background: var(--color-success); }
+    .dot-blocked { background: var(--color-danger); }
 
     /* Category Grid */
     .category-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
@@ -198,101 +225,101 @@ interface MemberProgress {
   `]
 })
 export class TeamProgressComponent implements OnInit {
-    loading = true;
-    weekLabel = '';
-    assignments: PlanAssignment[] = [];
-    overallPercent = 0;
-    tasksDone = 0;
-    tasksBlocked = 0;
-    totalTasks = 0;
-    categories: CategoryProgress[] = [];
-    members: MemberProgress[] = [];
+  loading = true;
+  weekLabel = '';
+  assignments: PlanAssignment[] = [];
+  overallPercent = 0;
+  tasksDone = 0;
+  tasksBlocked = 0;
+  totalTasks = 0;
+  categories: CategoryProgress[] = [];
+  members: MemberProgress[] = [];
 
-    constructor(
-        public nav: NavigationService,
-        private weeklyPlanService: WeeklyPlanService,
-        private planAssignmentService: PlanAssignmentService
-    ) { }
+  constructor(
+    public nav: NavigationService,
+    private weeklyPlanService: WeeklyPlanService,
+    private planAssignmentService: PlanAssignmentService
+  ) { }
 
-    ngOnInit(): void {
-        this.weeklyPlanService.getCurrent().subscribe({
-            next: (plan) => {
-                if (!plan) {
-                    this.loading = false;
-                    return;
-                }
-                this.weekLabel = `Week of ${plan.planningDate?.split('T')[0]} · ${plan.memberCount} members · ${plan.memberCount * 30}h total`;
-                this.planAssignmentService.getByWeek(plan.id).subscribe({
-                    next: (assignments) => {
-                        this.assignments = assignments;
-                        this.computeProgress();
-                        this.loading = false;
-                    },
-                    error: () => this.loading = false
-                });
-            },
-            error: () => this.loading = false
+  ngOnInit(): void {
+    this.weeklyPlanService.getCurrent().subscribe({
+      next: (plan) => {
+        if (!plan) {
+          this.loading = false;
+          return;
+        }
+        this.weekLabel = `Week of ${plan.planningDate?.split('T')[0]} · ${plan.memberCount} members · ${plan.memberCount * 30}h total`;
+        this.planAssignmentService.getByWeek(plan.id).subscribe({
+          next: (assignments) => {
+            this.assignments = assignments;
+            this.computeProgress();
+            this.loading = false;
+          },
+          error: () => this.loading = false
         });
+      },
+      error: () => this.loading = false
+    });
+  }
+
+  private computeProgress(): void {
+    const a = this.assignments;
+    this.totalTasks = a.length;
+    this.tasksDone = a.filter(x => x.status === 'Done').length;
+    this.tasksBlocked = a.filter(x => x.status === 'Blocked').length;
+
+    const totalCommitted = a.reduce((s, x) => s + x.committedHours, 0);
+    const totalDone = a.reduce((s, x) => s + x.hoursCompleted, 0);
+    this.overallPercent = totalCommitted > 0 ? Math.round((totalDone / totalCommitted) * 100) : 0;
+
+    // By category
+    const catMap: Record<string, { name: string; key: string; committed: number; done: number }> = {
+      'ClientFocused': { name: 'Client Focused', key: 'client', committed: 0, done: 0 },
+      'TechDebt': { name: 'Tech Debt', key: 'tech', committed: 0, done: 0 },
+      'RAndD': { name: 'R&D', key: 'rnd', committed: 0, done: 0 }
+    };
+    for (const x of a) {
+      const cat = catMap[x.backlogItemCategory];
+      if (cat) { cat.committed += x.committedHours; cat.done += x.hoursCompleted; }
     }
+    this.categories = Object.values(catMap).map(c => ({
+      ...c,
+      percent: c.committed > 0 ? Math.round((c.done / c.committed) * 100) : 0
+    }));
 
-    private computeProgress(): void {
-        const a = this.assignments;
-        this.totalTasks = a.length;
-        this.tasksDone = a.filter(x => x.status === 'Done').length;
-        this.tasksBlocked = a.filter(x => x.status === 'Blocked').length;
-
-        const totalCommitted = a.reduce((s, x) => s + x.committedHours, 0);
-        const totalDone = a.reduce((s, x) => s + x.hoursCompleted, 0);
-        this.overallPercent = totalCommitted > 0 ? Math.round((totalDone / totalCommitted) * 100) : 0;
-
-        // By category
-        const catMap: Record<string, { name: string; key: string; committed: number; done: number }> = {
-            'ClientFocused': { name: 'Client Focused', key: 'client', committed: 0, done: 0 },
-            'TechDebt': { name: 'Tech Debt', key: 'tech', committed: 0, done: 0 },
-            'RAndD': { name: 'R&D', key: 'rnd', committed: 0, done: 0 }
+    // By member
+    const memberMap = new Map<string, MemberProgress>();
+    for (const x of a) {
+      let m = memberMap.get(x.teamMemberId);
+      if (!m) {
+        m = {
+          memberId: x.teamMemberId, memberName: x.teamMemberName,
+          committed: 0, done: 0, percent: 0, tasksDone: 0, tasksBlocked: 0,
+          assignments: [], expanded: false
         };
-        for (const x of a) {
-            const cat = catMap[x.backlogItemCategory];
-            if (cat) { cat.committed += x.committedHours; cat.done += x.hoursCompleted; }
-        }
-        this.categories = Object.values(catMap).map(c => ({
-            ...c,
-            percent: c.committed > 0 ? Math.round((c.done / c.committed) * 100) : 0
-        }));
-
-        // By member
-        const memberMap = new Map<string, MemberProgress>();
-        for (const x of a) {
-            let m = memberMap.get(x.teamMemberId);
-            if (!m) {
-                m = {
-                    memberId: x.teamMemberId, memberName: x.teamMemberName,
-                    committed: 0, done: 0, percent: 0, tasksDone: 0, tasksBlocked: 0,
-                    assignments: [], expanded: false
-                };
-                memberMap.set(x.teamMemberId, m);
-            }
-            m.committed += x.committedHours;
-            m.done += x.hoursCompleted;
-            m.assignments.push(x);
-            if (x.status === 'Done') m.tasksDone++;
-            if (x.status === 'Blocked') m.tasksBlocked++;
-        }
-        this.members = Array.from(memberMap.values()).map(m => ({
-            ...m,
-            percent: m.committed > 0 ? Math.round((m.done / m.committed) * 100) : 0
-        }));
+        memberMap.set(x.teamMemberId, m);
+      }
+      m.committed += x.committedHours;
+      m.done += x.hoursCompleted;
+      m.assignments.push(x);
+      if (x.status === 'Done') m.tasksDone++;
+      if (x.status === 'Blocked') m.tasksBlocked++;
     }
+    this.members = Array.from(memberMap.values()).map(m => ({
+      ...m,
+      percent: m.committed > 0 ? Math.round((m.done / m.committed) * 100) : 0
+    }));
+  }
 
-    getCatKey(cat: string): string {
-        if (cat === 'ClientFocused') return 'client';
-        if (cat === 'TechDebt') return 'tech';
-        return 'rnd';
-    }
+  getCatKey(cat: string): string {
+    if (cat === 'ClientFocused') return 'client';
+    if (cat === 'TechDebt') return 'tech';
+    return 'rnd';
+  }
 
-    getCatLabel(cat: string): string {
-        if (cat === 'ClientFocused') return 'Client';
-        if (cat === 'TechDebt') return 'Tech Debt';
-        return 'R&D';
-    }
+  getCatLabel(cat: string): string {
+    if (cat === 'ClientFocused') return 'Client';
+    if (cat === 'TechDebt') return 'Tech Debt';
+    return 'R&D';
+  }
 }

@@ -18,7 +18,12 @@ import { BacklogCategory } from '../../core/enums/enums';
       <h1 class="page-title">Plan My Work</h1>
 
       @if (loading) {
-        <div class="loading"><div class="spinner"></div><p>Loading your plan...</p></div>
+        <div class="loading">
+          <div class="skeleton skeleton-line" style="width:45%; height:18px;"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
       }
 
       @if (!loading && currentPlan) {
@@ -75,12 +80,14 @@ import { BacklogCategory } from '../../core/enums/enums';
         <section class="my-plan">
           <h2>My Plan</h2>
           @if (myAssignments.length === 0) {
-            <div class="empty-plan">
-              You haven't picked any work yet. Click "Add Work from Backlog" to get started.
+            <div class="empty-state-styled">
+              <span class="empty-icon">📥</span>
+              <div class="empty-title">No work planned yet</div>
+              <div class="empty-subtitle">Click "Add Work from Backlog" to start picking tasks.</div>
             </div>
           }
           @for (a of myAssignments; track a.id) {
-            <div class="plan-card">
+            <div class="plan-card" [style.animationDelay]="(0.05 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
               <div class="plan-info">
                 <span class="cat-badge" [class]="getCatClass(a.backlogItemCategory)">
                   {{ getCategoryLabel(a.backlogItemCategory) }}
@@ -151,9 +158,9 @@ import { BacklogCategory } from '../../core/enums/enums';
     .plan-card {
       display: flex; align-items: center; justify-content: space-between;
       padding: 14px 16px; background: var(--bg-secondary); border: 1px solid var(--bg-card-hover);
-      border-radius: 10px; margin-bottom: 8px;
+      border-radius: 12px; margin-bottom: 8px; transition: all 0.25s;
     }
-    .plan-card:hover { border-color: var(--border-hover); }
+    .plan-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
     .plan-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
     .plan-title {
       font-size: 14px; font-weight: 600; color: var(--text-primary);
@@ -168,14 +175,8 @@ import { BacklogCategory } from '../../core/enums/enums';
     }
     .btn-remove:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--color-danger); }
     .loading {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 40vh; gap: 16px; color: var(--text-secondary);
+      max-width: 600px; margin: 40px auto; padding: 0 24px;
     }
-    .spinner {
-      width: 36px; height: 36px; border: 3px solid var(--bg-card-hover); border-top-color: var(--color-primary);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class PlanMyWorkComponent implements OnInit {

@@ -9,6 +9,7 @@ import { NavigationService } from '../../../app/core/services/navigation.service
 import { MemberRole } from '../../../app/core/enums/enums';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { RoleBadgeComponent } from '../../../app/shared/components/role-badge/role-badge.component';
+import { ConfirmService } from '../../../app/core/services/confirm.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ManageTeamComponent', () => {
@@ -18,6 +19,7 @@ describe('ManageTeamComponent', () => {
     const mockToast = { success: vi.fn(), error: vi.fn() };
     const mockNav = { navigateTo: vi.fn() };
     const mockTeamService = { refresh: vi.fn(), create: vi.fn(), makeLead: vi.fn(), remove: vi.fn(), members$: null as any };
+    const mockConfirm = { confirm: vi.fn().mockResolvedValue(true) };
 
     const mockMembers = [
         { id: '1', name: 'Alice', role: MemberRole.Lead, isActive: true, createdAt: '' },
@@ -34,7 +36,8 @@ describe('ManageTeamComponent', () => {
             providers: [
                 { provide: TeamMemberService, useValue: mockTeamService },
                 { provide: ToastService, useValue: mockToast },
-                { provide: NavigationService, useValue: mockNav }
+                { provide: NavigationService, useValue: mockNav },
+                { provide: ConfirmService, useValue: mockConfirm }
             ],
             schemas: [CUSTOM_ELEMENTS_SCHEMA]
         })
@@ -88,16 +91,24 @@ describe('ManageTeamComponent', () => {
         expect(mockToast.success).toHaveBeenCalled();
     });
 
-    it('should remove member', () => {
+    it('should remove member', async () => {
         mockTeamService.remove.mockReturnValue(of(void 0 as any));
-        component.removeMember(mockMembers[1] as any);
+        await component.removeMember(mockMembers[1] as any);
+        expect(mockConfirm.confirm).toHaveBeenCalled();
         expect(mockTeamService.remove).toHaveBeenCalledWith('2');
         expect(mockToast.success).toHaveBeenCalled();
     });
 
-    it('should show error on remove failure', () => {
+    it('should show error on remove failure', async () => {
         mockTeamService.remove.mockReturnValue(throwError(() => ({ error: 'Cannot remove lead' })));
-        component.removeMember(mockMembers[0] as any);
+        await component.removeMember(mockMembers[0] as any);
         expect(mockToast.error).toHaveBeenCalled();
+    });
+
+    it('should not remove member when confirmation cancelled', async () => {
+        mockConfirm.confirm.mockResolvedValue(false);
+        await component.removeMember(mockMembers[1] as any);
+        expect(mockConfirm.confirm).toHaveBeenCalled();
+        expect(mockTeamService.remove).not.toHaveBeenCalled();
     });
 });

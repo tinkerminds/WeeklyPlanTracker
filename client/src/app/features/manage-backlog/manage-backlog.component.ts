@@ -29,7 +29,10 @@ import { BacklogCategory } from '../../core/enums/enums';
           </div>
           <div class="form-group">
             <label>Title</label>
-            <input type="text" [(ngModel)]="formData.title" placeholder="What's this work item?" class="form-control" autocomplete="off" />
+            <input type="text" [(ngModel)]="formData.title" (ngModelChange)="checkDuplicate()" placeholder="What's this work item?" class="form-control" autocomplete="off" />
+            @if (duplicateWarning) {
+              <div class="duplicate-warning">⚠ A similar item already exists: "{{ duplicateWarning }}"</div>
+            }
           </div>
           <div class="form-group">
             <label>Description</label>
@@ -60,7 +63,6 @@ import { BacklogCategory } from '../../core/enums/enums';
             <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" class="form-control small-select">
               <option value="available">Available Only</option>
               <option value="all">Show All</option>
-              <option value="completed">Completed</option>
               <option value="archived">Archived</option>
             </select>
             <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search by title" class="form-control search-input" autocomplete="off" />
@@ -68,10 +70,15 @@ import { BacklogCategory } from '../../core/enums/enums';
         </div>
         <div class="item-list">
           @if (filteredItems.length === 0) {
-            <div class="empty-state">No backlog items match your filters.</div>
+            <div class="empty-state-styled">
+              <span class="empty-icon">📋</span>
+              <div class="empty-title">No items found</div>
+              <div class="empty-subtitle">Try adjusting your filters or add a new backlog item.</div>
+              <button class="btn btn-primary" (click)="openAddForm()">+ Add Item</button>
+            </div>
           }
           @for (item of filteredItems; track item.id) {
-            <div class="item-card" [class.archived]="item.isArchived">
+            <div class="item-card" [class.archived]="item.isArchived" [style.animationDelay]="(0.05 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
               <div class="item-main">
                 <span class="item-title">{{ item.title }}</span>
                 <div class="item-badges">
@@ -145,6 +152,7 @@ import { BacklogCategory } from '../../core/enums/enums';
     .form-control:focus { border-color: var(--color-primary); }
     .form-control.small { width: 120px; }
     .form-control.textarea { resize: vertical; }
+    .duplicate-warning { color: var(--color-warning); font-size: 12px; font-weight: 600; margin-top: 6px; }
     .form-actions { display: flex; gap: 10px; margin-top: 24px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
   `]
@@ -161,6 +169,7 @@ export class ManageBacklogComponent implements OnInit, OnDestroy {
   showForm = false;
   editingItem: BacklogItem | null = null;
   formData = this.emptyForm();
+  duplicateWarning = '';
   private sub!: Subscription;
 
   constructor(
@@ -191,7 +200,6 @@ export class ManageBacklogComponent implements OnInit, OnDestroy {
     let items = [...this.allItems];
     if (this.statusFilter === 'available') items = items.filter(i => !i.isArchived);
     else if (this.statusFilter === 'archived') items = items.filter(i => i.isArchived);
-    else if (this.statusFilter === 'completed') items = items.filter(i => !i.isArchived);
     const anyCategory = this.filterClient || this.filterTech || this.filterRnD;
     if (anyCategory) {
       items = items.filter(i => {
@@ -216,15 +224,26 @@ export class ManageBacklogComponent implements OnInit, OnDestroy {
     }
   }
 
-  openAddForm(): void { this.formData = this.emptyForm(); this.editingItem = null; this.showForm = true; }
+  openAddForm(): void { this.formData = this.emptyForm(); this.editingItem = null; this.duplicateWarning = ''; this.showForm = true; }
 
   openEditForm(item: BacklogItem): void {
     this.editingItem = item;
     this.formData = { title: item.title, description: item.description || '', category: item.category, estimatedHours: item.estimatedHours };
+    this.duplicateWarning = '';
     this.showForm = true;
   }
 
-  cancelForm(): void { this.showForm = false; this.editingItem = null; }
+  cancelForm(): void { this.showForm = false; this.editingItem = null; this.duplicateWarning = ''; }
+
+  checkDuplicate(): void {
+    const title = this.formData.title.trim().toLowerCase();
+    if (title.length < 3) { this.duplicateWarning = ''; return; }
+    const match = this.allItems.find(i =>
+      i.title.toLowerCase().includes(title) &&
+      (!this.editingItem || i.id !== this.editingItem.id)
+    );
+    this.duplicateWarning = match ? match.title : '';
+  }
 
   saveItem(): void {
     if (this.editingItem) {

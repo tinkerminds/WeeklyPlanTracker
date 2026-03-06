@@ -18,7 +18,12 @@ import { BacklogCategory } from '../../core/enums/enums';
       <h1 class="page-title">Review the Team\u2019s Plan</h1>
 
       @if (loading) {
-        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+        <div class="loading">
+          <div class="skeleton skeleton-line" style="width:50%; height:18px;"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
       }
 
       @if (!loading && currentPlan) {
@@ -78,7 +83,7 @@ import { BacklogCategory } from '../../core/enums/enums';
         <!-- Member Summary -->
         <h2 class="section-title">Member Summary</h2>
         @for (member of members; track member.id) {
-          <div class="member-card" (click)="toggleExpand(member.id)">
+          <div class="member-card" [style.animationDelay]="(0.06 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;" (click)="toggleExpand(member.id)">
             <div class="member-row">
               <span class="member-name">{{ member.name }}</span>
               <span class="member-hours" [class.hours-ok]="getMemberHours(member.id) === 30"
@@ -169,10 +174,10 @@ import { BacklogCategory } from '../../core/enums/enums';
 
     /* Member Summary */
     .member-card {
-      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 10px;
-      padding: 16px 20px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s;
+      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s;
     }
-    .member-card:hover { border-color: var(--border-hover); }
+    .member-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
     .member-row {
       display: flex; align-items: center; gap: 16px;
     }
@@ -221,14 +226,8 @@ import { BacklogCategory } from '../../core/enums/enums';
     .btn-cancel:hover { background: var(--color-danger-hover); }
 
     .loading {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 30vh; gap: 16px; color: var(--text-secondary);
+      max-width: 600px; margin: 40px auto; padding: 0 24px;
     }
-    .spinner {
-      width: 36px; height: 36px; border: 3px solid var(--bg-card-hover); border-top-color: var(--color-primary);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class ReviewFreezeComponent implements OnInit {

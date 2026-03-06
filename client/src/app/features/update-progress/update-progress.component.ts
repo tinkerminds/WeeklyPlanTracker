@@ -10,37 +10,55 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
 import { BacklogCategory, AssignmentStatus } from '../../core/enums/enums';
 
 @Component({
-    selector: 'app-update-progress',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-update-progress',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div class="progress-container">
       <button class="btn-back" (click)="nav.navigateTo('home')">\u2190 Home</button>
       <h1 class="page-title">Update My Progress</h1>
 
       @if (loading) {
-        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+        <div class="loading">
+          <div class="skeleton skeleton-line" style="width:45%; height:18px;"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
       }
 
       @if (!loading) {
         <!-- Personal Summary -->
         <div class="summary-bar">
-          Committed: <strong>{{ totalCommitted }}h</strong>.
-          Currently: <strong>{{ totalDone }}h</strong> done.
-          @if (totalDone > totalCommitted) {
-            <span class="over-warning">
-              You\u2019ve put in more hours than you planned. That\u2019s okay \u2014 this will be noted.
-            </span>
-          }
+          <svg class="mini-ring" viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="28" cy="28" r="22" />
+            <circle class="ring-fill" cx="28" cy="28" r="22"
+              [style.strokeDasharray]="2 * 3.14159 * 22"
+              [style.strokeDashoffset]="2 * 3.14159 * 22 * (1 - (totalCommitted > 0 ? Math.min(totalDone / totalCommitted, 1) : 0))" />
+            <text x="28" y="32" text-anchor="middle" class="ring-text">{{ totalCommitted > 0 ? Math.round(totalDone / totalCommitted * 100) : 0 }}%</text>
+          </svg>
+          <div class="summary-text">
+            Committed: <strong>{{ totalCommitted }}h</strong>.
+            Currently: <strong>{{ totalDone }}h</strong> done.
+            @if (totalDone > totalCommitted) {
+              <span class="over-warning">
+                You've put in more hours than you planned. That's okay — this will be noted.
+              </span>
+            }
+          </div>
         </div>
 
         <!-- Task Cards -->
         @if (myAssignments.length === 0) {
-          <div class="empty-state">No tasks assigned to you this week.</div>
+          <div class="empty-state-styled">
+            <span class="empty-icon">✅</span>
+            <div class="empty-title">No tasks this week</div>
+            <div class="empty-subtitle">You haven't been assigned any work for this weekly plan.</div>
+          </div>
         }
 
         @for (a of myAssignments; track a.id) {
-          <div class="task-card">
+          <div class="task-card" [style.animationDelay]="(0.06 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
             <div class="task-header">
               <span class="cat-badge" [class]="getCatClass(a.backlogItemCategory)">{{ getCategoryLabel(a.backlogItemCategory) }}</span>
               <span class="task-title">{{ a.backlogItemTitle }}</span>
@@ -75,7 +93,7 @@ import { BacklogCategory, AssignmentStatus } from '../../core/enums/enums';
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .progress-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
     .btn-back {
       display: inline-block; background: var(--bg-card-hover); color: var(--text-secondary); border: none;
@@ -86,9 +104,19 @@ import { BacklogCategory, AssignmentStatus } from '../../core/enums/enums';
     .page-title { font-size: 24px; color: var(--text-primary); margin: 0 0 16px; }
 
     .summary-bar {
-      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 10px;
-      padding: 14px 20px; color: var(--text-secondary); font-size: 15px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 12px;
+      padding: 16px 20px; color: var(--text-secondary); font-size: 15px; margin-bottom: 20px;
     }
+    .mini-ring { width: 56px; height: 56px; flex-shrink: 0; }
+    .mini-ring .ring-bg { fill: none; stroke: var(--bg-card-hover); stroke-width: 5; }
+    .mini-ring .ring-fill {
+      fill: none; stroke: var(--color-primary); stroke-width: 5; stroke-linecap: round;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .mini-ring .ring-text { fill: var(--text-heading); font-size: 14px; font-weight: 800; font-family: 'Inter', sans-serif; }
+    .summary-text { flex: 1; }
     .summary-bar strong { color: var(--text-primary); }
     .over-warning {
       display: block; margin-top: 6px; color: var(--color-warning); font-size: 13px; font-style: italic;
@@ -100,10 +128,10 @@ import { BacklogCategory, AssignmentStatus } from '../../core/enums/enums';
     }
 
     .task-card {
-      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 10px;
-      padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.2s;
+      background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 12px;
+      padding: 18px 20px; margin-bottom: 12px; transition: all 0.25s;
     }
-    .task-card:hover { border-color: var(--border-hover); }
+    .task-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
     .task-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
     .task-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
     .task-details { margin-bottom: 12px; }
@@ -145,118 +173,113 @@ import { BacklogCategory, AssignmentStatus } from '../../core/enums/enums';
     .cat-rnd { background: var(--color-success); color: #fff; }
 
     .loading {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 30vh; gap: 16px; color: var(--text-secondary);
+      max-width: 600px; margin: 40px auto; padding: 0 24px;
     }
-    .spinner {
-      width: 36px; height: 36px; border: 3px solid var(--bg-card-hover); border-top-color: var(--color-primary);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class UpdateProgressComponent implements OnInit {
-    loading = true;
-    currentPlan: WeeklyPlan | null = null;
-    myAssignments: PlanAssignment[] = [];
-    progressData: { [id: string]: { hoursCompleted: number; status: string } } = {};
-    saving: { [id: string]: boolean } = {};
-    constructor(
-        private authService: AuthService,
-        private weeklyPlanService: WeeklyPlanService,
-        private planAssignmentService: PlanAssignmentService,
-        public nav: NavigationService,
-        private toast: ToastService
-    ) { }
+  Math = Math;
+  loading = true;
+  currentPlan: WeeklyPlan | null = null;
+  myAssignments: PlanAssignment[] = [];
+  progressData: { [id: string]: { hoursCompleted: number; status: string } } = {};
+  saving: { [id: string]: boolean } = {};
+  constructor(
+    private authService: AuthService,
+    private weeklyPlanService: WeeklyPlanService,
+    private planAssignmentService: PlanAssignmentService,
+    public nav: NavigationService,
+    private toast: ToastService
+  ) { }
 
-    ngOnInit(): void {
-        this.loadData();
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  get totalCommitted(): number {
+    return this.myAssignments.reduce((s, a) => s + a.committedHours, 0);
+  }
+
+  get totalDone(): number {
+    return this.myAssignments.reduce((s, a) => s + (this.progressData[a.id]?.hoursCompleted || 0), 0);
+  }
+
+  getCategoryLabel(cat: BacklogCategory | string): string {
+    switch (cat) {
+      case BacklogCategory.ClientFocused: return 'Client Focused';
+      case BacklogCategory.TechDebt: return 'Tech Debt';
+      case BacklogCategory.RAndD: return 'R&D';
+      default: return String(cat);
     }
+  }
 
-    get totalCommitted(): number {
-        return this.myAssignments.reduce((s, a) => s + a.committedHours, 0);
+  getCatClass(cat: BacklogCategory | string): string {
+    switch (cat) {
+      case BacklogCategory.ClientFocused: return 'cat-client';
+      case BacklogCategory.TechDebt: return 'cat-tech';
+      case BacklogCategory.RAndD: return 'cat-rnd';
+      default: return '';
     }
+  }
 
-    get totalDone(): number {
-        return this.myAssignments.reduce((s, a) => s + (this.progressData[a.id]?.hoursCompleted || 0), 0);
-    }
+  updateTask(a: PlanAssignment): void {
+    const data = this.progressData[a.id];
+    if (!data) return;
 
-    getCategoryLabel(cat: BacklogCategory | string): string {
-        switch (cat) {
-            case BacklogCategory.ClientFocused: return 'Client Focused';
-            case BacklogCategory.TechDebt: return 'Tech Debt';
-            case BacklogCategory.RAndD: return 'R&D';
-            default: return String(cat);
+    this.saving[a.id] = true;
+    this.planAssignmentService.updateProgress(a.id, {
+      hoursCompleted: data.hoursCompleted,
+      status: data.status
+    }).subscribe({
+      next: (updated) => {
+        // Update the local assignment data
+        const idx = this.myAssignments.findIndex(x => x.id === a.id);
+        if (idx >= 0) {
+          this.myAssignments[idx] = updated;
         }
-    }
+        this.saving[a.id] = false;
+        this.toast.success('Progress updated!');
+      },
+      error: (err) => {
+        this.saving[a.id] = false;
+        this.toast.error(err.error || 'Failed to update progress.');
+      }
+    });
+  }
 
-    getCatClass(cat: BacklogCategory | string): string {
-        switch (cat) {
-            case BacklogCategory.ClientFocused: return 'cat-client';
-            case BacklogCategory.TechDebt: return 'cat-tech';
-            case BacklogCategory.RAndD: return 'cat-rnd';
-            default: return '';
+  private loadData(): void {
+    this.loading = true;
+    this.weeklyPlanService.getCurrent().subscribe({
+      next: (plan) => {
+        if (!plan) {
+          this.loading = false;
+          this.nav.navigateTo('home');
+          return;
         }
-    }
+        this.currentPlan = plan;
+        const user = this.authService.getCurrentUser();
+        if (!user) {
+          this.loading = false;
+          return;
+        }
 
-    updateTask(a: PlanAssignment): void {
-        const data = this.progressData[a.id];
-        if (!data) return;
-
-        this.saving[a.id] = true;
-        this.planAssignmentService.updateProgress(a.id, {
-            hoursCompleted: data.hoursCompleted,
-            status: data.status
-        }).subscribe({
-            next: (updated) => {
-                // Update the local assignment data
-                const idx = this.myAssignments.findIndex(x => x.id === a.id);
-                if (idx >= 0) {
-                    this.myAssignments[idx] = updated;
-                }
-                this.saving[a.id] = false;
-                this.toast.success('Progress updated!');
-            },
-            error: (err) => {
-                this.saving[a.id] = false;
-                this.toast.error(err.error || 'Failed to update progress.');
+        this.planAssignmentService.getByWeekAndMember(plan.id, user.id).subscribe({
+          next: (assignments) => {
+            this.myAssignments = assignments;
+            // Initialize progress data from current values
+            for (const a of assignments) {
+              this.progressData[a.id] = {
+                hoursCompleted: a.hoursCompleted,
+                status: a.status
+              };
+              this.saving[a.id] = false;
             }
+            this.loading = false;
+          },
+          error: () => { this.loading = false; }
         });
-    }
-
-    private loadData(): void {
-        this.loading = true;
-        this.weeklyPlanService.getCurrent().subscribe({
-            next: (plan) => {
-                if (!plan) {
-                    this.loading = false;
-                    this.nav.navigateTo('home');
-                    return;
-                }
-                this.currentPlan = plan;
-                const user = this.authService.getCurrentUser();
-                if (!user) {
-                    this.loading = false;
-                    return;
-                }
-
-                this.planAssignmentService.getByWeekAndMember(plan.id, user.id).subscribe({
-                    next: (assignments) => {
-                        this.myAssignments = assignments;
-                        // Initialize progress data from current values
-                        for (const a of assignments) {
-                            this.progressData[a.id] = {
-                                hoursCompleted: a.hoursCompleted,
-                                status: a.status
-                            };
-                            this.saving[a.id] = false;
-                        }
-                        this.loading = false;
-                    },
-                    error: () => { this.loading = false; }
-                });
-            },
-            error: () => { this.loading = false; }
-        });
-    }
+      },
+      error: () => { this.loading = false; }
+    });
+  }
 }

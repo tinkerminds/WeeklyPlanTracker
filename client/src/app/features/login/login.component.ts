@@ -21,7 +21,7 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
 
       <div class="member-grid">
         @for (member of members; track member.id) {
-          <button class="member-btn" (click)="selectMember(member)" [id]="'login-' + member.id">
+          <button class="member-btn" (click)="selectMember(member)" [id]="'login-' + member.id" [style.animationDelay]="(0.08 * $index) + 's'" style="animation: staggerFadeIn 0.35s ease-out both;">
             <div class="avatar">{{ getInitials(member.name) }}</div>
             <span class="name">{{ member.name }}</span>
             <app-role-badge [role]="member.role"></app-role-badge>
@@ -30,8 +30,10 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
       </div>
 
       @if (members.length === 0) {
-        <div class="empty-state">
-          <p>No team members found.</p>
+        <div class="empty-state-styled">
+          <span class="empty-icon">👥</span>
+          <div class="empty-title">No team members yet</div>
+          <div class="empty-subtitle">Set up your team to get started.</div>
           <button class="btn btn-primary" (click)="nav.navigateTo('setup')">Set Up Team</button>
         </div>
       }
@@ -84,8 +86,8 @@ import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badg
     .member-btn:hover {
       border-color: var(--color-primary);
       background: var(--login-card-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
     }
     .avatar {
       width: 50px;

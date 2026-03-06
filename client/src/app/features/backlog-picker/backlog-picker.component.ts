@@ -21,7 +21,12 @@ import { BacklogCategory } from '../../core/enums/enums';
       <p class="subtitle">You have <strong>{{ hoursLeft }}</strong> hours left to plan.</p>
 
       @if (loading) {
-        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+        <div class="loading">
+          <div class="skeleton skeleton-line" style="width:50%; height:18px;"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
       }
 
       @if (!loading) {
@@ -43,17 +48,23 @@ import { BacklogCategory } from '../../core/enums/enums';
 
         <!-- Item list -->
         @if (filteredItems.length === 0) {
-          <div class="empty-state">No backlog items are available in the categories you selected.</div>
+          <div class="empty-state-styled">
+            <span class="empty-icon">📦</span>
+            <div class="empty-title">No items available</div>
+            <div class="empty-subtitle">All backlog items are either assigned or filtered out.</div>
+          </div>
         }
         @for (item of filteredItems; track item.id) {
-          <div class="item-card">
+          <div class="item-card" [style.animationDelay]="(0.05 * $index) + 's'" style="animation: staggerFadeIn 0.3s ease-out both;">
             <div class="item-info">
               <div class="item-header">
                 <span class="cat-badge" [class]="getCatClass(item.category)">{{ getCategoryLabel(item.category) }}</span>
                 <span class="item-title">{{ item.title }}</span>
               </div>
               @if (item.description) {
-                <p class="item-desc">{{ item.description }}</p>
+                <p class="item-desc" [class.expanded]="expandedItems.has(item.id)" (click)="toggleDescription(item.id)">
+                  {{ item.description }}
+                </p>
               }
               <span class="item-est">{{ item.estimatedHours }}h est.</span>
             </div>
@@ -129,7 +140,13 @@ import { BacklogCategory } from '../../core/enums/enums';
     .item-info { flex: 1; min-width: 0; }
     .item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
     .item-title { font-size: 15px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .item-desc { font-size: 13px; color: var(--text-muted); margin: 2px 0 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-desc {
+      font-size: 13px; color: var(--text-muted); margin: 2px 0 4px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .item-desc:hover { color: var(--text-secondary); }
+    .item-desc.expanded { white-space: normal; overflow: visible; }
     .item-est { font-size: 12px; color: var(--text-secondary); }
     .btn-pick {
       padding: 8px 16px; background: var(--color-primary); color: #fff; border: none;
@@ -190,14 +207,8 @@ import { BacklogCategory } from '../../core/enums/enums';
     .btn-cancel:hover { background: var(--text-muted); }
 
     .loading {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 30vh; gap: 16px; color: var(--text-secondary);
+      max-width: 600px; margin: 40px auto; padding: 0 24px;
     }
-    .spinner {
-      width: 36px; height: 36px; border: 3px solid var(--bg-card-hover); border-top-color: var(--color-primary);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class BacklogPickerComponent implements OnInit {
@@ -213,6 +224,7 @@ export class BacklogPickerComponent implements OnInit {
   modalHours = 0;
   modalError = '';
   adding = false;
+  expandedItems = new Set<string>();
   constructor(
     private authService: AuthService,
     private weeklyPlanService: WeeklyPlanService,
@@ -228,6 +240,11 @@ export class BacklogPickerComponent implements OnInit {
 
   toggleFilter(cat: string): void {
     this.categoryFilter = this.categoryFilter === cat ? '' : cat;
+  }
+
+  toggleDescription(id: string): void {
+    if (this.expandedItems.has(id)) this.expandedItems.delete(id);
+    else this.expandedItems.add(id);
   }
 
   get hoursLeft(): number {

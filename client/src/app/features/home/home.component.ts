@@ -40,7 +40,7 @@ interface MenuCard {
       <!-- Menu Cards -->
       <div class="card-grid">
         @for (card of menuCards; track card.title) {
-          <button class="menu-card" [class.card-danger]="card.danger" (click)="onCardClick(card)">
+          <button class="menu-card" [class.card-danger]="card.danger" (click)="onCardClick(card)" [style.animationDelay]="(0.06 * $index) + 's'" style="animation: staggerFadeIn 0.35s ease-out both;">
             <span class="card-icon">{{ card.icon }}</span>
             <div class="card-text">
               <span class="card-title">{{ card.title }}</span>
@@ -116,9 +116,9 @@ interface MenuCard {
       padding: 22px 24px;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 14px;
+      border-radius: 16px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
       font-family: inherit;
       text-align: left;
       color: var(--text-primary);
@@ -127,15 +127,17 @@ interface MenuCard {
     .menu-card:hover {
       border-color: var(--color-primary);
       background: var(--bg-card-active);
-      box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(59, 130, 246, 0.12);
+      transform: translateY(-3px) scale(1.015);
     }
+    .menu-card:hover .card-arrow { opacity: 1; transform: translateX(2px); }
     .card-danger {
       border-color: rgba(239, 68, 68, 0.3);
     }
     .card-danger:hover {
       border-color: var(--color-danger);
       background: rgba(239, 68, 68, 0.08);
+      box-shadow: 0 8px 28px rgba(239, 68, 68, 0.12);
     }
     .card-danger .card-title {
       color: var(--color-danger);
@@ -143,6 +145,13 @@ interface MenuCard {
     .card-icon {
       font-size: 28px;
       flex-shrink: 0;
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 12px;
+    }
+    .card-danger .card-icon {
+      background: rgba(239, 68, 68, 0.08);
     }
     .card-text {
       flex: 1;
@@ -151,20 +160,21 @@ interface MenuCard {
       gap: 4px;
     }
     .card-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--text-heading);
     }
     .card-subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.4;
     }
     .card-arrow {
       font-size: 22px;
-      color: var(--border-hover);
+      color: var(--text-muted);
       flex-shrink: 0;
-      display: none;
+      opacity: 0;
+      transition: all 0.2s;
     }
   `]
 })
