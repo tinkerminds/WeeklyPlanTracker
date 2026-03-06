@@ -24,6 +24,7 @@ describe('ManageBacklogComponent', () => {
     ];
 
     beforeEach(async () => {
+        vi.clearAllMocks();
         itemsSubject = new BehaviorSubject<any[]>(mockItems);
         mockBacklog.items$ = itemsSubject.asObservable();
 
