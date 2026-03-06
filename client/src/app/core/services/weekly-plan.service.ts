@@ -67,4 +67,18 @@ export class WeeklyPlanService {
             `${this.apiUrl}/${planId}/members/${memberId}/toggle-planning-done`, {}
         );
     }
+
+    /** Add a member to the current plan. */
+    addMember(planId: string, memberId: string): Observable<WeeklyPlan> {
+        return this.http.post<WeeklyPlan>(
+            `${this.apiUrl}/${planId}/members/${memberId}`, {}
+        );
+    }
+
+    /** Remove a member from the current plan. */
+    removeMember(planId: string, memberId: string): Observable<WeeklyPlan> {
+        return this.http.delete<WeeklyPlan>(
+            `${this.apiUrl}/${planId}/members/${memberId}`
+        );
+    }
 }

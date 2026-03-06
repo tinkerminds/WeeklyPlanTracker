@@ -293,6 +293,73 @@ namespace WeeklyPlanTracker.API.Controllers
             return Ok(new { isPlanningDone = wpm.IsPlanningDone });
         }
 
+        /// <summary>POST /api/weekly-plans/{id}/members/{memberId} — Add a member to the plan (PlanningOpen state).</summary>
+        [HttpPost("{id:guid}/members/{memberId:guid}")]
+        public async Task<ActionResult<WeeklyPlanResponse>> AddMemberToPlan(Guid id, Guid memberId)
+        {
+            var plan = await _unitOfWork.WeeklyPlans.GetWithDetailsAsync(id);
+            if (plan == null)
+                return NotFound();
+
+            if (plan.State != WeekState.PlanningOpen && plan.State != WeekState.Setup)
+                return BadRequest("Members can only be added during Setup or PlanningOpen state.");
+
+            // Check member exists and is active
+            var member = await _unitOfWork.TeamMembers.GetByIdAsync(memberId);
+            if (member == null || !member.IsActive)
+                return BadRequest("Team member not found or inactive.");
+
+            // Check not already in plan
+            if (plan.WeeklyPlanMembers.Any(m => m.TeamMemberId == memberId))
+                return BadRequest("Member is already in this plan.");
+
+            plan.WeeklyPlanMembers.Add(new WeeklyPlanMember
+            {
+                WeeklyPlanId = plan.Id,
+                TeamMemberId = memberId
+            });
+
+            _unitOfWork.WeeklyPlans.Update(plan);
+            await _unitOfWork.SaveChangesAsync();
+
+            var updated = await _unitOfWork.WeeklyPlans.GetWithDetailsAsync(id);
+            return Ok(MapToDetailResponse(updated!));
+        }
+
+        /// <summary>DELETE /api/weekly-plans/{id}/members/{memberId} — Remove a member from the plan (PlanningOpen state).</summary>
+        [HttpDelete("{id:guid}/members/{memberId:guid}")]
+        public async Task<ActionResult<WeeklyPlanResponse>> RemoveMemberFromPlan(Guid id, Guid memberId)
+        {
+            var plan = await _unitOfWork.WeeklyPlans.GetWithDetailsAsync(id);
+            if (plan == null)
+                return NotFound();
+
+            if (plan.State != WeekState.PlanningOpen && plan.State != WeekState.Setup)
+                return BadRequest("Members can only be removed during Setup or PlanningOpen state.");
+
+            var wpm = plan.WeeklyPlanMembers.FirstOrDefault(m => m.TeamMemberId == memberId);
+            if (wpm == null)
+                return NotFound("Member not found in this plan.");
+
+            // Must keep at least one member
+            if (plan.WeeklyPlanMembers.Count <= 1)
+                return BadRequest("Cannot remove the last member from the plan.");
+
+            // Remove any assignments for this member
+            var memberAssignments = plan.PlanAssignments.Where(pa => pa.TeamMemberId == memberId).ToList();
+            foreach (var assignment in memberAssignments)
+            {
+                _unitOfWork.PlanAssignments.Remove(assignment);
+            }
+
+            plan.WeeklyPlanMembers.Remove(wpm);
+            _unitOfWork.WeeklyPlans.Update(plan);
+            await _unitOfWork.SaveChangesAsync();
+
+            var updated = await _unitOfWork.WeeklyPlans.GetWithDetailsAsync(id);
+            return Ok(MapToDetailResponse(updated!));
+        }
+
         // ─────────────────────────────────────────────
         // Mapping helpers
         // ─────────────────────────────────────────────

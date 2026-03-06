@@ -77,9 +77,9 @@ public class DataControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Seed_HandlesExistingLead()
+    public async Task Seed_ClearsExistingDataFirst()
     {
-        // Add an existing Lead first
+        // Add pre-existing data that should be cleared
         _db.TeamMembers.Add(new TeamMember
         {
             Id = Guid.NewGuid(), Name = "Existing Lead", Role = MemberRole.Lead, IsActive = true
@@ -90,11 +90,15 @@ public class DataControllerTests : IDisposable
 
         result.Should().BeOfType<OkObjectResult>();
 
-        // Alice should be added as Member since a Lead already exists
+        // All old data should be gone, replaced by fresh seed data
         var members = await _db.TeamMembers.ToListAsync();
+        members.Should().HaveCount(4);
+        members.Any(m => m.Name == "Existing Lead").Should().BeFalse();
+
+        // Alice should be Lead since old data was cleared
         var leads = members.Where(m => m.Role == MemberRole.Lead).ToList();
         leads.Should().HaveCount(1);
-        leads[0].Name.Should().Be("Existing Lead");
+        leads[0].Name.Should().Be("Alice Chen");
     }
 
     // ═══════════════════════════════════════════

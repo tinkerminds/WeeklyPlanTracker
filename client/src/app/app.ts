@@ -177,22 +177,22 @@ import { PastWeeksComponent } from './features/past-weeks/past-weeks.component';
 
     .footer-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.88));
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255,255,255,0.06); z-index: 100;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.95));
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255,255,255,0.12); z-index: 100;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
     }
     .footer-btn {
-      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.65);
-      border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px;
       border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
       font-family: 'Inter', sans-serif; transition: all 0.2s; white-space: nowrap;
     }
-    .footer-btn:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
-    .footer-btn-danger { border-color: rgba(239,68,68,0.4); color: rgba(239,68,68,0.8); }
-    .footer-btn-danger:hover { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
+    .footer-btn:hover { background: rgba(255,255,255,0.18); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .footer-btn-danger { border-color: rgba(239,68,68,0.5); color: rgba(239,68,68,0.9); }
+    .footer-btn-danger:hover { background: var(--color-danger); color: #fff; border-color: var(--color-danger); box-shadow: 0 2px 10px rgba(239,68,68,0.3); }
     .coming-soon h2 { font-size: 24px; color: var(--text-heading); margin-bottom: 8px; }
     .coming-soon p { color: var(--text-secondary); margin-bottom: 24px; }
     .btn-primary {
@@ -365,10 +365,10 @@ export class App implements OnInit, OnDestroy {
   async seedData(): Promise<void> {
     const ok = await this.confirm.confirm({
       title: '🌱 Seed Sample Data',
-      message: 'This will add sample team members, backlog items, and a planning cycle. Existing data will not be erased.',
-      confirmText: 'Yes, Load Sample Data',
+      message: 'This will erase all existing data and load fresh sample team members, backlog items, and a planning cycle.',
+      confirmText: 'Yes, Reset & Load',
       cancelText: 'No, Go Back',
-      danger: false
+      danger: true
     });
     if (!ok) return;
     this.dataService.seedData().subscribe({

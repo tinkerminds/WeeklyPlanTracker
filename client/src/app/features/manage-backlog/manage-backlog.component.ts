@@ -103,8 +103,6 @@ import { BacklogCategory } from '../../core/enums/enums';
   `,
   styles: [`
     .backlog-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    .btn-back { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 16px; font-family: inherit; }
-    .btn-back:hover { color: var(--text-secondary); }
     h2 { font-size: 22px; color: var(--text-primary); margin-bottom: 20px; }
     .add-btn { margin-bottom: 20px; }
     .filters { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }

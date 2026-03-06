@@ -115,11 +115,6 @@ interface MemberProgress {
     .progress-page {
       max-width: 960px; margin: 20px auto; padding: 0 24px; font-family: 'Inter', sans-serif;
     }
-    .back-btn {
-      background: none; border: none; color: var(--color-primary); font-size: 14px; font-weight: 600;
-      cursor: pointer; padding: 8px 0; font-family: inherit;
-    }
-    .back-btn:hover { text-decoration: underline; }
     h1 { font-size: 28px; font-weight: 700; color: var(--text-heading); margin-bottom: 4px; }
     h2 { font-size: 20px; font-weight: 700; color: var(--text-heading); margin: 28px 0 14px 0; }
     .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 24px; }

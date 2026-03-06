@@ -57,19 +57,24 @@ namespace WeeklyPlanTracker.API.Controllers
         [HttpPost("seed")]
         public async Task<IActionResult> Seed()
         {
-            // Seed team members (add to existing data)
-            // If a Lead already exists, add Alice as Member to avoid duplicate leads
-            var hasLead = await _db.TeamMembers.AnyAsync(t => t.Role == MemberRole.Lead && t.IsActive);
-            var aliceRole = hasLead ? MemberRole.Member : MemberRole.Lead;
+            // ── Step 1: Clear all existing data ──
+            _db.ProgressUpdates.RemoveRange(_db.ProgressUpdates);
+            _db.PlanAssignments.RemoveRange(_db.PlanAssignments);
+            _db.Set<WeeklyPlanMember>().RemoveRange(_db.Set<WeeklyPlanMember>());
+            _db.WeeklyPlans.RemoveRange(_db.WeeklyPlans);
+            _db.BacklogItems.RemoveRange(_db.BacklogItems);
+            _db.TeamMembers.RemoveRange(_db.TeamMembers);
+            await _db.SaveChangesAsync();
 
-            var alice = new TeamMember { Id = Guid.NewGuid(), Name = "Alice Chen", Role = aliceRole, IsActive = true, CreatedAt = DateTime.UtcNow };
+            // ── Step 2: Seed team members ──
+            var alice = new TeamMember { Id = Guid.NewGuid(), Name = "Alice Chen", Role = MemberRole.Lead, IsActive = true, CreatedAt = DateTime.UtcNow };
             var bob = new TeamMember { Id = Guid.NewGuid(), Name = "Bob Martinez", Role = MemberRole.Member, IsActive = true, CreatedAt = DateTime.UtcNow };
             var carol = new TeamMember { Id = Guid.NewGuid(), Name = "Carol Williams", Role = MemberRole.Member, IsActive = true, CreatedAt = DateTime.UtcNow };
             var dave = new TeamMember { Id = Guid.NewGuid(), Name = "Dave Kim", Role = MemberRole.Member, IsActive = true, CreatedAt = DateTime.UtcNow };
 
             _db.TeamMembers.AddRange(alice, bob, carol, dave);
 
-            // Seed backlog items
+            // ── Step 3: Seed backlog items ──
             var b1 = new BacklogItem { Id = Guid.NewGuid(), Title = "Client Onboarding Flow", Description = "Build the full onboarding experience for new clients", Category = BacklogCategory.ClientFocused, EstimatedHours = 20, CreatedAt = DateTime.UtcNow };
             var b2 = new BacklogItem { Id = Guid.NewGuid(), Title = "Fix Billing Page Bugs", Description = "Fix critical bugs on the billing page", Category = BacklogCategory.ClientFocused, EstimatedHours = 8, CreatedAt = DateTime.UtcNow };
             var b3 = new BacklogItem { Id = Guid.NewGuid(), Title = "Dashboard Redesign", Description = "Redesign the main analytics dashboard", Category = BacklogCategory.ClientFocused, EstimatedHours = 15, CreatedAt = DateTime.UtcNow };
@@ -83,9 +88,8 @@ namespace WeeklyPlanTracker.API.Controllers
 
             _db.BacklogItems.AddRange(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10);
 
-            // Seed a weekly plan in PlanningOpen state
+            // ── Step 4: Seed weekly plan with ALL 4 members ──
             // Percentages: Client 50%, TechDebt 30%, R&D 20%
-            // Budget hours are auto-computed from member count * 30 * percentage
             var plan = new WeeklyPlan
             {
                 Id = Guid.NewGuid(),
@@ -97,6 +101,7 @@ namespace WeeklyPlanTracker.API.Controllers
                 CreatedAt = DateTime.UtcNow,
                 WeeklyPlanMembers = new List<WeeklyPlanMember>
                 {
+                    new WeeklyPlanMember { TeamMemberId = alice.Id, IsPlanningDone = false },
                     new WeeklyPlanMember { TeamMemberId = bob.Id, IsPlanningDone = true },
                     new WeeklyPlanMember { TeamMemberId = carol.Id, IsPlanningDone = false },
                     new WeeklyPlanMember { TeamMemberId = dave.Id, IsPlanningDone = true }
@@ -104,20 +109,24 @@ namespace WeeklyPlanTracker.API.Controllers
             };
             _db.WeeklyPlans.Add(plan);
 
-            // Seed plan assignments (distribute work across members)
+            // ── Step 5: Seed plan assignments — each member gets exactly 30h ──
             var assignments = new[]
             {
-                // Bob: 30h total — Client 15h, TechDebt 10h, R&D 5h
+                // Alice (Lead): 30h — Client 15h, TechDebt 9h, R&D 6h
+                new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = alice.Id, BacklogItemId = b4.Id, CommittedHours = 15, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
+                new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = alice.Id, BacklogItemId = b8.Id, CommittedHours = 9, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
+                new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = alice.Id, BacklogItemId = b10.Id, CommittedHours = 6, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
+                // Bob: 30h — Client 15h, TechDebt 10h, R&D 5h
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = bob.Id, BacklogItemId = b1.Id, CommittedHours = 15, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = bob.Id, BacklogItemId = b5.Id, CommittedHours = 10, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = bob.Id, BacklogItemId = b10.Id, CommittedHours = 5, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
-                // Carol: 30h total — Client 15h, TechDebt 8h, R&D 7h
+                // Carol: 30h — Client 15h, TechDebt 8h, R&D 7h
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = carol.Id, BacklogItemId = b3.Id, CommittedHours = 15, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = carol.Id, BacklogItemId = b6.Id, CommittedHours = 8, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = carol.Id, BacklogItemId = b9.Id, CommittedHours = 7, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
-                // Dave: 30h total — Client 15h, TechDebt 9h, R&D 6h
-                new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = dave.Id, BacklogItemId = b4.Id, CommittedHours = 12, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
+                // Dave: 30h — Client 15h, TechDebt 9h, R&D 6h
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = dave.Id, BacklogItemId = b2.Id, CommittedHours = 3, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
+                new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = dave.Id, BacklogItemId = b4.Id, CommittedHours = 12, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = dave.Id, BacklogItemId = b7.Id, CommittedHours = 9, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
                 new PlanAssignment { Id = Guid.NewGuid(), WeeklyPlanId = plan.Id, TeamMemberId = dave.Id, BacklogItemId = b10.Id, CommittedHours = 6, Status = AssignmentStatus.NotStarted, CreatedAt = DateTime.UtcNow },
             };
@@ -125,7 +134,7 @@ namespace WeeklyPlanTracker.API.Controllers
 
             await _db.SaveChangesAsync();
 
-            return Ok(new { message = "Sample data loaded!" });
+            return Ok(new { message = "All previous data cleared. Fresh sample data loaded with 4 team members, 10 backlog items, and a weekly plan!" });
         }
 
         // ─────────────────────────────────────────────

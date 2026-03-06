@@ -7,10 +7,10 @@ import { ToastService } from '../../core/services/toast.service';
 import { WeeklyPlan } from '../../core/models/weekly-plan.model';
 
 @Component({
-    selector: 'app-past-weeks',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-past-weeks',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="past-page">
       <button class="back-btn" (click)="nav.navigateTo('home')">← Home</button>
       <h1>📅 Past Weeks</h1>
@@ -80,15 +80,10 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .past-page {
       max-width: 960px; margin: 20px auto; padding: 0 24px; font-family: 'Inter', sans-serif;
     }
-    .back-btn {
-      background: none; border: none; color: var(--color-primary); font-size: 14px; font-weight: 600;
-      cursor: pointer; padding: 8px 0; font-family: inherit;
-    }
-    .back-btn:hover { text-decoration: underline; }
     h1 { font-size: 28px; font-weight: 700; color: var(--text-heading); margin-bottom: 20px; }
     h2 { font-size: 20px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
     .loading, .empty {
@@ -155,68 +150,68 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
   `]
 })
 export class PastWeeksComponent implements OnInit {
-    weeks: WeeklyPlan[] = [];
-    loading = true;
-    expandedId: string | null = null;
+  weeks: WeeklyPlan[] = [];
+  loading = true;
+  expandedId: string | null = null;
 
-    constructor(
-        public nav: NavigationService,
-        private weeklyPlanService: WeeklyPlanService,
-        private dataService: DataService,
-        private toast: ToastService
-    ) { }
+  constructor(
+    public nav: NavigationService,
+    private weeklyPlanService: WeeklyPlanService,
+    private dataService: DataService,
+    private toast: ToastService
+  ) { }
 
-    ngOnInit(): void {
-        this.weeklyPlanService.getPast().subscribe({
-            next: (weeks) => { this.weeks = weeks; this.loading = false; },
-            error: () => this.loading = false
+  ngOnInit(): void {
+    this.weeklyPlanService.getPast().subscribe({
+      next: (weeks) => { this.weeks = weeks; this.loading = false; },
+      error: () => this.loading = false
+    });
+  }
+
+  toggleExpand(id: string): void {
+    this.expandedId = this.expandedId === id ? null : id;
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    return dateStr.split('T')[0];
+  }
+
+  getMemberSummary(week: WeeklyPlan): { name: string; committed: number; done: number; percent: number }[] {
+    if (!week.assignments) return [];
+    const map = new Map<string, { name: string; committed: number; done: number }>();
+    for (const a of week.assignments) {
+      let m = map.get(a.teamMemberId);
+      if (!m) { m = { name: a.teamMemberName, committed: 0, done: 0 }; map.set(a.teamMemberId, m); }
+      m.committed += a.committedHours;
+      m.done += a.hoursCompleted;
+    }
+    return Array.from(map.values()).map(m => ({
+      ...m,
+      percent: m.committed > 0 ? Math.round((m.done / m.committed) * 100) : 0
+    }));
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const jsonData = JSON.parse(reader.result as string);
+        this.dataService.importData(jsonData).subscribe({
+          next: () => {
+            this.toast.success('Data restored from file!');
+            this.ngOnInit();
+          },
+          error: () => this.toast.error('Failed to import data.')
         });
-    }
-
-    toggleExpand(id: string): void {
-        this.expandedId = this.expandedId === id ? null : id;
-    }
-
-    formatDate(dateStr: string): string {
-        if (!dateStr) return '';
-        return dateStr.split('T')[0];
-    }
-
-    getMemberSummary(week: WeeklyPlan): { name: string; committed: number; done: number; percent: number }[] {
-        if (!week.assignments) return [];
-        const map = new Map<string, { name: string; committed: number; done: number }>();
-        for (const a of week.assignments) {
-            let m = map.get(a.teamMemberId);
-            if (!m) { m = { name: a.teamMemberName, committed: 0, done: 0 }; map.set(a.teamMemberId, m); }
-            m.committed += a.committedHours;
-            m.done += a.hoursCompleted;
-        }
-        return Array.from(map.values()).map(m => ({
-            ...m,
-            percent: m.committed > 0 ? Math.round((m.done / m.committed) * 100) : 0
-        }));
-    }
-
-    onFileSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        if (!input.files?.length) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const jsonData = JSON.parse(reader.result as string);
-                this.dataService.importData(jsonData).subscribe({
-                    next: () => {
-                        this.toast.success('Data restored from file!');
-                        this.ngOnInit();
-                    },
-                    error: () => this.toast.error('Failed to import data.')
-                });
-            } catch {
-                this.toast.error('Invalid JSON file.');
-            }
-        };
-        reader.readAsText(file);
-        input.value = '';
-    }
+      } catch {
+        this.toast.error('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
 }

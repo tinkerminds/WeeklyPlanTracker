@@ -4,6 +4,8 @@ import { WeeklyPlanService } from '../../core/services/weekly-plan.service';
 import { PlanAssignmentService, PlanAssignment } from '../../core/services/plan-assignment.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TeamMemberService } from '../../core/services/team-member.service';
+import { TeamMember } from '../../core/models/team-member.model';
 import { WeeklyPlan, WeeklyPlanMember } from '../../core/models/weekly-plan.model';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { BacklogCategory } from '../../core/enums/enums';
@@ -80,6 +82,38 @@ import { BacklogCategory } from '../../core/enums/enums';
           </div>
         </div>
 
+        <!-- Manage Members -->
+        <div class="manage-members-section">
+          <button class="manage-members-toggle" (click)="showManageMembers = !showManageMembers">
+            <span class="toggle-label">👥 Manage Plan Members</span>
+            <span class="toggle-count">{{ members.length }} in plan</span>
+            <span class="toggle-chevron" [class.open]="showManageMembers">›</span>
+          </button>
+          @if (showManageMembers) {
+            <div class="manage-members-grid">
+              @for (tm of allTeamMembers; track tm.id) {
+                <div class="mm-card" [class.mm-in-plan]="isMemberInPlan(tm.id)">
+                  <div class="mm-info">
+                    <span class="mm-status-dot" [class.dot-active]="isMemberInPlan(tm.id)"></span>
+                    <span class="mm-name">{{ tm.name }}</span>
+                    @if (tm.role === 'Lead') {
+                      <span class="mm-role-badge">Lead</span>
+                    }
+                  </div>
+                  <div class="mm-actions">
+                    @if (isMemberInPlan(tm.id)) {
+                      <span class="mm-label-in">In Plan</span>
+                      <button class="mm-btn-remove" (click)="removePlanMember(tm.id)" [disabled]="members.length <= 1">Remove</button>
+                    } @else {
+                      <button class="mm-btn-add" (click)="addPlanMember(tm.id)">+ Add to Plan</button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         <!-- Member Summary -->
         <h2 class="section-title">Member Summary</h2>
         @for (member of members; track member.id) {
@@ -137,12 +171,6 @@ import { BacklogCategory } from '../../core/enums/enums';
   `,
   styles: [`
     .review-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    .btn-back {
-      display: inline-block; background: var(--bg-card-hover); color: var(--text-secondary); border: none;
-      padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; font-family: inherit; margin-bottom: 12px;
-    }
-    .btn-back:hover { background: var(--border-hover); color: var(--text-primary); }
     .page-title { font-size: 24px; color: var(--text-primary); margin: 0 0 4px; }
     .summary-line { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
     .section-title { font-size: 18px; color: var(--text-primary); margin: 20px 0 10px; font-weight: 700; }
@@ -225,6 +253,63 @@ import { BacklogCategory } from '../../core/enums/enums';
     }
     .btn-cancel:hover { background: var(--color-danger-hover); }
 
+    /* Manage Members */
+    .manage-members-section { margin-bottom: 24px; }
+    .manage-members-toggle {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 14px 20px; background: var(--bg-secondary); border: 1px solid var(--bg-card-hover);
+      border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--text-primary);
+      cursor: pointer; font-family: inherit; transition: all 0.25s;
+    }
+    .manage-members-toggle:hover { border-color: var(--border-hover); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .toggle-label { flex: 1; text-align: left; }
+    .toggle-count {
+      font-size: 12px; font-weight: 500; color: var(--color-primary);
+      background: rgba(59, 130, 246, 0.1); padding: 3px 10px; border-radius: 20px;
+    }
+    .toggle-chevron {
+      font-size: 18px; color: var(--text-muted); transition: transform 0.25s; display: inline-block;
+    }
+    .toggle-chevron.open { transform: rotate(90deg); }
+    .manage-members-grid {
+      display: flex; flex-direction: column; gap: 8px; margin-top: 12px;
+    }
+    .mm-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--bg-card-hover);
+      border-radius: 10px; border-left: 3px solid var(--bg-card-hover); transition: all 0.2s;
+    }
+    .mm-card:hover { border-color: var(--border-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .mm-card.mm-in-plan { border-left-color: var(--color-primary); background: rgba(59, 130, 246, 0.03); }
+    .mm-info { display: flex; align-items: center; gap: 10px; }
+    .mm-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--bg-card-hover); flex-shrink: 0;
+    }
+    .mm-status-dot.dot-active { background: var(--color-success); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+    .mm-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .mm-role-badge {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      background: rgba(245, 158, 11, 0.15); color: var(--color-warning); padding: 2px 8px; border-radius: 4px;
+    }
+    .mm-actions { display: flex; align-items: center; gap: 10px; }
+    .mm-label-in {
+      font-size: 11px; font-weight: 600; color: var(--color-primary); text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .mm-btn-add {
+      background: linear-gradient(135deg, var(--color-primary), #6366f1); color: #fff; border: none;
+      padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+    }
+    .mm-btn-add:hover { box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3); transform: translateY(-1px); }
+    .mm-btn-remove {
+      background: transparent; color: var(--text-muted); border: 1px solid var(--bg-card-hover);
+      padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+    }
+    .mm-btn-remove:hover { color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); }
+    .mm-btn-remove:disabled { opacity: 0.3; cursor: not-allowed; }
+
     .loading {
       max-width: 600px; margin: 40px auto; padding: 0 24px;
     }
@@ -237,11 +322,14 @@ export class ReviewFreezeComponent implements OnInit {
   currentPlan: WeeklyPlan | null = null;
   members: WeeklyPlanMember[] = [];
   allAssignments: PlanAssignment[] = [];
+  allTeamMembers: TeamMember[] = [];
   freezeIssues: string[] = [];
   expandedMember: string | null = null;
+  showManageMembers = false;
   constructor(
     private weeklyPlanService: WeeklyPlanService,
     private planAssignmentService: PlanAssignmentService,
+    private teamMemberService: TeamMemberService,
     public nav: NavigationService,
     private toast: ToastService,
     private confirmService: ConfirmService
@@ -340,8 +428,70 @@ export class ReviewFreezeComponent implements OnInit {
     });
   }
 
+  isMemberInPlan(memberId: string): boolean {
+    return this.members.some(m => m.id === memberId);
+  }
+
+  async addPlanMember(memberId: string): Promise<void> {
+    if (!this.currentPlan) return;
+    const tm = this.allTeamMembers.find(m => m.id === memberId);
+    const ok = await this.confirmService.confirm({
+      title: '➕ Add Member',
+      message: `Add "${tm?.name || 'this member'}" to the weekly plan?`,
+      confirmText: 'Yes, Add',
+      cancelText: 'Cancel'
+    });
+    if (!ok) return;
+
+    this.weeklyPlanService.addMember(this.currentPlan.id, memberId).subscribe({
+      next: (plan) => {
+        this.toast.success(`${tm?.name || 'Member'} added to the plan.`);
+        this.currentPlan = plan;
+        this.members = plan.members || [];
+        this.computeIssues();
+      },
+      error: (err) => {
+        this.toast.error(err.error || 'Failed to add member.');
+      }
+    });
+  }
+
+  async removePlanMember(memberId: string): Promise<void> {
+    if (!this.currentPlan) return;
+    const tm = this.allTeamMembers.find(m => m.id === memberId);
+    const ok = await this.confirmService.confirm({
+      title: '🗑️ Remove Member',
+      message: `Remove "${tm?.name || 'this member'}" from the plan? Their assignments will also be deleted.`,
+      confirmText: 'Yes, Remove',
+      cancelText: 'Keep',
+      danger: true
+    });
+    if (!ok) return;
+
+    this.weeklyPlanService.removeMember(this.currentPlan.id, memberId).subscribe({
+      next: (plan) => {
+        this.toast.success(`${tm?.name || 'Member'} removed from the plan.`);
+        this.currentPlan = plan;
+        this.members = plan.members || [];
+        this.allAssignments = this.allAssignments.filter(a => a.teamMemberId !== memberId);
+        this.computeIssues();
+      },
+      error: (err) => {
+        this.toast.error(err.error || 'Failed to remove member.');
+      }
+    });
+  }
+
   private loadData(): void {
     this.loading = true;
+
+    // Load all team members for the manage-members panel
+    this.teamMemberService.getAll().subscribe({
+      next: (members) => {
+        this.allTeamMembers = members.filter(m => m.isActive);
+      }
+    });
+
     this.weeklyPlanService.getCurrent().subscribe({
       next: (plan) => {
         if (!plan) {

@@ -72,9 +72,12 @@ import { BacklogCategory } from '../../core/enums/enums';
 
         <!-- Buttons -->
         <div class="action-row">
-          <button class="btn-add-work" (click)="nav.navigateTo('backlog-picker')">Add Work from Backlog</button>
-          <button class="btn-done" (click)="toggleReady()">{{ readyBtnText }}</button>
+          <button class="btn-add-work" (click)="nav.navigateTo('backlog-picker')" [disabled]="!isMemberOfPlan">Add Work from Backlog</button>
+          <button class="btn-done" (click)="toggleReady()" [disabled]="!isMemberOfPlan">{{ readyBtnText }}</button>
         </div>
+        @if (!isMemberOfPlan) {
+          <div class="not-member-warning">⚠ You are not a member of this weekly plan. Ask the team lead to include you.</div>
+        }
 
         <!-- My Plan -->
         <section class="my-plan">
@@ -106,12 +109,6 @@ import { BacklogCategory } from '../../core/enums/enums';
   `,
   styles: [`
     .plan-container { max-width: 960px; margin: 20px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    .btn-back {
-      display: inline-block; background: var(--bg-card-hover); color: var(--text-secondary); border: none;
-      padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; font-family: inherit; margin-bottom: 12px;
-    }
-    .btn-back:hover { background: var(--border-hover); color: var(--text-primary); }
     .page-title { font-size: 24px; color: var(--text-primary); margin: 0 0 16px; }
     .hours-bar {
       background: var(--bg-secondary); border: 1px solid var(--bg-card-hover); border-radius: 10px;
@@ -149,7 +146,13 @@ import { BacklogCategory } from '../../core/enums/enums';
       border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
       font-family: inherit; transition: all 0.2s;
     }
-    .btn-done:hover { background: var(--text-muted); }
+    .btn-done:hover:not(:disabled) { background: var(--text-muted); }
+    .btn-add-work:disabled, .btn-done:disabled { opacity: 0.4; cursor: not-allowed; }
+    .not-member-warning {
+      background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);
+      border-left: 4px solid var(--color-warning); border-radius: 8px;
+      padding: 12px 16px; font-size: 13px; color: var(--color-warning); margin-bottom: 16px;
+    }
     .my-plan h2 { font-size: 18px; color: var(--text-primary); margin-bottom: 12px; }
     .empty-plan {
       padding: 20px; background: var(--bg-secondary); border: 1px solid var(--bg-card-hover);
@@ -186,6 +189,7 @@ export class PlanMyWorkComponent implements OnInit {
   myAssignments: PlanAssignment[] = [];
   allAssignments: PlanAssignment[] = [];
   isReady = false;
+  isMemberOfPlan = true;
   constructor(
     private authService: AuthService,
     private weeklyPlanService: WeeklyPlanService,
@@ -217,7 +221,12 @@ export class PlanMyWorkComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.toast.error(err.error || 'Failed to update status.');
+        if (err.status === 404) {
+          this.toast.error('You are not a member of this weekly plan.');
+          this.isMemberOfPlan = false;
+        } else {
+          this.toast.error(err.error || 'Failed to update status.');
+        }
       }
     });
   }
@@ -298,7 +307,12 @@ export class PlanMyWorkComponent implements OnInit {
           const me = plan.members.find(m => m.id === user.id);
           if (me) {
             this.isReady = me.isPlanningDone;
+            this.isMemberOfPlan = true;
+          } else {
+            this.isMemberOfPlan = false;
           }
+        } else {
+          this.isMemberOfPlan = false;
         }
 
         this.planAssignmentService.getByWeek(plan.id).subscribe({

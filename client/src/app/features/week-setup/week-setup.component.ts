@@ -28,6 +28,7 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
           type="date"
           class="date-input"
           [value]="planningDate"
+          [min]="minDate"
           (change)="onDateChange($event)"
           [class.input-error]="dateError"
         />
@@ -122,12 +123,6 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       font-family: 'Inter', sans-serif;
     }
     .header { margin-bottom: 32px; }
-    .back-btn {
-      background: none; border: none; color: var(--text-muted); font-size: 14px;
-      cursor: pointer; padding: 0; margin-bottom: 12px; font-family: inherit;
-      transition: color 0.2s;
-    }
-    .back-btn:hover { color: var(--color-primary); }
     .header h1 { font-size: 24px; color: var(--text-primary); margin: 0 0 4px; }
     .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0; }
 
@@ -143,6 +138,11 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       width: 100%; padding: 12px 14px; background: var(--bg-primary); border: 1px solid var(--bg-card-hover);
       border-radius: 8px; color: var(--text-primary); font-size: 14px; font-family: inherit;
       outline: none; transition: border-color 0.2s; cursor: pointer;
+      color-scheme: dark;
+    }
+    .date-input::-webkit-calendar-picker-indicator {
+      filter: invert(0.7);
+      cursor: pointer;
     }
     .date-input:focus { border-color: var(--color-primary); }
     .input-error { border-color: var(--color-danger) !important; }
@@ -212,6 +212,7 @@ export class WeekSetupComponent implements OnInit {
   allMembers: TeamMember[] = [];
   selectedMemberIds = new Set<string>();
   planningDate = '';
+  minDate = '';
   dateError = '';
   workStart = '';
   workEnd = '';
@@ -239,8 +240,10 @@ export class WeekSetupComponent implements OnInit {
       }
     });
 
+    // Set min date to today
+    this.minDate = this.formatDate(new Date());
     // Default planning date to next Tuesday
-    this.planningDate = this.getTodayDate();
+    this.planningDate = this.getNextTuesday();
     this.validateDate();
     this.updateWorkDates();
   }
@@ -333,7 +336,11 @@ export class WeekSetupComponent implements OnInit {
       return;
     }
     const date = new Date(this.planningDate + 'T00:00:00');
-    if (date.getDay() !== 2) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today) {
+      this.dateError = 'Date cannot be in the past.';
+    } else if (date.getDay() !== 2) {
       this.dateError = 'Planning date must be a Tuesday.';
     } else {
       this.dateError = '';
@@ -351,5 +358,21 @@ export class WeekSetupComponent implements OnInit {
     const end = new Date(d); end.setDate(d.getDate() + 6);
     this.workStart = start.toISOString().split('T')[0];
     this.workEnd = end.toISOString().split('T')[0];
+  }
+
+  private getNextTuesday(): string {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Sun ... 6=Sat
+    const daysUntilTuesday = (2 - dayOfWeek + 7) % 7 || 7; // always next tuesday, not today even if today is tuesday
+    const next = new Date(today);
+    next.setDate(today.getDate() + daysUntilTuesday);
+    return this.formatDate(next);
+  }
+
+  private formatDate(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
