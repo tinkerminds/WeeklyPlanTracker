@@ -21,7 +21,7 @@ import { BacklogCategory } from '../../core/enums/enums';
           <h2>{{ editingItem ? 'Edit Backlog Item' : 'Add a New Backlog Item' }}</h2>
           <div class="form-group">
             <label>Category</label>
-            <select [(ngModel)]="formData.category" class="form-control">
+            <select [(ngModel)]="formData.category" class="form-control" [disabled]="!!editingItem">
               <option [value]="BacklogCategory.ClientFocused">Client Focused</option>
               <option [value]="BacklogCategory.TechDebt">Tech Debt</option>
               <option [value]="BacklogCategory.RAndD">R&D</option>

@@ -160,8 +160,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.teamMemberService.refresh();
     this.sub = this.teamMemberService.members$.subscribe(
-      members => this.members = members
+      members => this.members = [...members].sort((a, b) => {
+        if (a.role === 'Lead' && b.role !== 'Lead') return -1;
+        if (a.role !== 'Lead' && b.role === 'Lead') return 1;
+        return a.name.localeCompare(b.name);
+      })
     );
   }
 

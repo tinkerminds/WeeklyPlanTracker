@@ -4,6 +4,7 @@ import { Component, Input } from '@angular/core';
 import { vi } from 'vitest';
 import { ManageTeamComponent } from '../../../app/features/manage-team/manage-team.component';
 import { TeamMemberService } from '../../../app/core/services/team-member.service';
+import { AuthService } from '../../../app/core/services/auth.service';
 import { ToastService } from '../../../app/core/services/toast.service';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { MemberRole } from '../../../app/core/enums/enums';
@@ -18,7 +19,18 @@ describe('ManageTeamComponent', () => {
     let membersSubject: BehaviorSubject<any[]>;
     const mockToast = { success: vi.fn(), error: vi.fn() };
     const mockNav = { navigateTo: vi.fn() };
-    const mockTeamService = { refresh: vi.fn(), create: vi.fn(), makeLead: vi.fn(), remove: vi.fn(), members$: null as any };
+    const mockTeamService = {
+        refresh: vi.fn(),
+        create: vi.fn(),
+        makeLead: vi.fn(),
+        remove: vi.fn(),
+        getMembers: vi.fn().mockReturnValue([]),
+        members$: null as any
+    };
+    const mockAuth = {
+        getCurrentUser: vi.fn().mockReturnValue(null),
+        refreshUser: vi.fn()
+    };
     const mockConfirm = { confirm: vi.fn().mockResolvedValue(true) };
 
     const mockMembers = [
@@ -30,11 +42,13 @@ describe('ManageTeamComponent', () => {
         vi.clearAllMocks();
         membersSubject = new BehaviorSubject<any[]>(mockMembers);
         mockTeamService.members$ = membersSubject.asObservable();
+        mockTeamService.getMembers.mockReturnValue(mockMembers);
 
         await TestBed.configureTestingModule({
             imports: [ManageTeamComponent, FormsModule],
             providers: [
                 { provide: TeamMemberService, useValue: mockTeamService },
+                { provide: AuthService, useValue: mockAuth },
                 { provide: ToastService, useValue: mockToast },
                 { provide: NavigationService, useValue: mockNav },
                 { provide: ConfirmService, useValue: mockConfirm }
@@ -89,6 +103,19 @@ describe('ManageTeamComponent', () => {
         component.makeLead(mockMembers[1] as any);
         expect(mockTeamService.makeLead).toHaveBeenCalledWith('2');
         expect(mockToast.success).toHaveBeenCalled();
+    });
+
+    it('should sync auth user role when members update', () => {
+        const currentUser = { id: '1', name: 'Alice', role: MemberRole.Lead, isActive: true, createdAt: '' };
+        mockAuth.getCurrentUser.mockReturnValue(currentUser);
+
+        // Simulate role change in members list
+        const updatedMembers = [
+            { id: '1', name: 'Alice', role: MemberRole.Member, isActive: true, createdAt: '' },
+            { id: '2', name: 'Bob', role: MemberRole.Lead, isActive: true, createdAt: '' }
+        ];
+        membersSubject.next(updatedMembers);
+        expect(mockAuth.refreshUser).toHaveBeenCalledWith(updatedMembers[0]);
     });
 
     it('should remove member', async () => {

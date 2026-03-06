@@ -79,16 +79,19 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
             <label class="percent-label">Client Focused %</label>
             <input type="number" min="0" max="100"
               class="percent-input" [(ngModel)]="clientPercent" (ngModelChange)="onPercentChange()" />
+            <span class="hours-info">{{ getHours(clientPercent) }}h allocated</span>
           </div>
           <div class="percent-field">
             <label class="percent-label">Tech Debt %</label>
             <input type="number" min="0" max="100"
               class="percent-input" [(ngModel)]="techDebtPercent" (ngModelChange)="onPercentChange()" />
+            <span class="hours-info">{{ getHours(techDebtPercent) }}h allocated</span>
           </div>
           <div class="percent-field">
             <label class="percent-label">R&D %</label>
             <input type="number" min="0" max="100"
               class="percent-input" [(ngModel)]="rndPercent" (ngModelChange)="onPercentChange()" />
+            <span class="hours-info">{{ getHours(rndPercent) }}h allocated</span>
           </div>
         </div>
 
@@ -182,6 +185,7 @@ import { WeeklyPlan } from '../../core/models/weekly-plan.model';
       outline: none; transition: border-color 0.2s;
     }
     .percent-input:focus { border-color: var(--color-primary); }
+    .hours-info { font-size: 13px; color: var(--text-info); font-weight: 600; margin-top: 2px; }
 
     /* Total bar */
     .total-bar {

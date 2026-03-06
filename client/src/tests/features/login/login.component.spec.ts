@@ -28,7 +28,7 @@ describe('LoginComponent', () => {
         await TestBed.configureTestingModule({
             imports: [LoginComponent],
             providers: [
-                { provide: TeamMemberService, useValue: { members$: membersSubject.asObservable() } },
+                { provide: TeamMemberService, useValue: { members$: membersSubject.asObservable(), refresh: vi.fn() } },
                 { provide: AuthService, useValue: mockAuth },
                 { provide: NavigationService, useValue: mockNav }
             ]
@@ -56,6 +56,19 @@ describe('LoginComponent', () => {
         membersSubject.next(members);
         fixture.detectChanges();
         expect(component.members.length).toBe(2);
+    });
+
+    it('should sort members with lead first then alphabetical', () => {
+        const members = [
+            { id: '1', name: 'Charlie', role: MemberRole.Member, isActive: true, createdAt: '' },
+            { id: '2', name: 'Alice', role: MemberRole.Member, isActive: true, createdAt: '' },
+            { id: '3', name: 'Bob', role: MemberRole.Lead, isActive: true, createdAt: '' }
+        ];
+        membersSubject.next(members);
+        fixture.detectChanges();
+        expect(component.members[0].name).toBe('Bob'); // Lead first
+        expect(component.members[1].name).toBe('Alice'); // Then alphabetical
+        expect(component.members[2].name).toBe('Charlie');
     });
 
     it('should login on member selection', () => {

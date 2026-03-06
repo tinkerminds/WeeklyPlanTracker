@@ -7,6 +7,7 @@ import { MemberRole } from '../../core/enums/enums';
 import { TeamMemberService } from '../../core/services/team-member.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 
@@ -81,6 +82,7 @@ export class ManageTeamComponent implements OnInit, OnDestroy {
 
   constructor(
     private teamMemberService: TeamMemberService,
+    private authService: AuthService,
     private toastService: ToastService,
     public nav: NavigationService,
     private confirmService: ConfirmService
@@ -88,7 +90,17 @@ export class ManageTeamComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.teamMemberService.refresh();
-    this.sub = this.teamMemberService.members$.subscribe(members => this.members = members);
+    this.sub = this.teamMemberService.members$.subscribe(members => {
+      this.members = members;
+      // Keep auth user in sync when roles change
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser) {
+        const updated = members.find(m => m.id === currentUser.id);
+        if (updated && updated.role !== currentUser.role) {
+          this.authService.refreshUser(updated);
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
