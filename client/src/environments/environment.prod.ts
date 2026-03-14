@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://weekly-plan-tracker-api.azurewebsites.net/api'
+    apiUrl: 'https://wp-tracker-api-ganesh.azurewebsites.net/api'
 };

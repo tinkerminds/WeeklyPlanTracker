@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:4200",
-                "https://weekly-plan-tracker-app.azurewebsites.net"
+                "https://wp-tracker-app-ganesh.azurewebsites.net"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();

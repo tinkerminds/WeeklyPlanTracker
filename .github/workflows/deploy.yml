@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_BACKEND_APP_NAME: 'weekly-plan-tracker-api'
-  AZURE_FRONTEND_APP_NAME: 'weekly-plan-tracker-app'
+  AZURE_BACKEND_APP_NAME: 'wp-tracker-api-ganesh'
+  AZURE_FRONTEND_APP_NAME: 'wp-tracker-app-ganesh'
   DOTNET_VERSION: '8.0.x'
   NODE_VERSION: '20'
 
