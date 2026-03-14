@@ -4,8 +4,8 @@ The Weekly Plan Tracker is a collaborative application designed to streamline te
 
 ## Application Environments
 
-- App: https://weekly-plan-tracker-app.azurewebsites.net
-- API: https://weekly-plan-tracker-api.azurewebsites.net
+- App: https://wp-tracker-app-ganesh.azurewebsites.net
+- API: https://wp-tracker-api-ganesh.azurewebsites.net
 
 ## Recent Updates
 - **Complete Test Coverage**: Achieved 100% unit test coverage across both the frontend (169 tests across 23 suites using Vitest + Angular Testing Library) and backend (xUnit + Moq).
